@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/compare/:path*", "destination": "https://REPLACE-WITH-COMPARE-DEPLOYMENT.vercel.app/compare/:path*" },
+    { "source": "/code-check/:path*", "destination": "https://REPLACE-WITH-CODECHECK-DEPLOYMENT.vercel.app/code-check/:path*" },
+    { "source": "/chat/:path*", "destination": "https://REPLACE-WITH-CHAT-DEPLOYMENT.vercel.app/:path*" }
+  ]
+}
