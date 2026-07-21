@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Dashboard — BuildArken</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D;
+    --bg-raised: #111318;
+    --bg-raised-hover: #15181E;
+    --border: #1E2128;
+    --border-soft: #191C22;
+    --text-1: #EDEEF1;
+    --text-2: #9498A3;
+    --text-3: #5A5E68;
+    --accent: #45E0C6;
+    --accent-dim: #45E0C633;
+    --accent-ink: #06110F;
+    --warn: #F0A23D;
+    --warn-dim: #F0A23D26;
+    --radius-s: 8px;
+    --radius-m: 12px;
+    --radius-l: 20px;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --container: 1180px;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ height: 100%; overflow: hidden; }
+  body{
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a{ color: inherit; text-decoration: none; }
+  button{ font-family: inherit; cursor: pointer; }
+  html[dir="rtl"] body{ text-align: right; }
+  html[dir="rtl"] .nav .wrap{ direction: rtl; }
+
+  .wrap{ max-width: var(--container); margin: 0 auto; padding: 0 32px; }
+
+  /* ---------- nav (matches tools.html) ---------- */
+  .nav{ position: sticky; top: 0; z-index: 50; background: rgba(10,11,13,0.72); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  .nav .wrap{ height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .logo{ display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 16px; letter-spacing: -0.01em; flex-shrink: 0; }
+  .logo img{ display: block; border-radius: 6px; }
+  .nav-links{ display: flex; align-items: center; gap: 28px; font-size: 14px; color: var(--text-2); flex: 1; justify-content: center; }
+  .nav-links a{ transition: color 0.15s ease; }
+  .nav-links a:hover, .nav-links a.nav-current{ color: var(--text-1); }
+  .nav-right{ display: flex; align-items: center; gap: 12px; }
+
+  .lang-select{ position: relative; flex-shrink: 0; }
+  .lang-select-btn{ display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: var(--text-2); background: var(--bg-raised); border: 1px solid var(--border); border-radius: 999px; height: 32px; padding: 0 12px; transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease; }
+  .lang-select-btn:hover{ color: var(--text-1); background: var(--bg-raised-hover); border-color: #2A2E37; }
+  .lang-select-btn svg{ transition: transform 0.15s ease; }
+  .lang-select.open .lang-select-btn svg{ transform: rotate(180deg); }
+  .lang-select-list{ position: absolute; top: calc(100% + 8px); right: 0; z-index: 60; min-width: 150px; background: #14161B; border: 1px solid var(--border); border-radius: var(--radius-s); padding: 4px; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; box-shadow: 0 12px 28px rgba(0,0,0,0.5); transition: max-height 0.18s ease, opacity 0.15s ease; }
+  html[dir="rtl"] .lang-select-list{ right: auto; left: 0; }
+  .lang-select.open .lang-select-list{ max-height: 280px; opacity: 1; pointer-events: auto; }
+  .lang-select-list li{ padding: 9px 10px; border-radius: 6px; font-size: 13.5px; color: var(--text-2); display: flex; align-items: center; justify-content: space-between; cursor: pointer; white-space: nowrap; }
+  .lang-select-list li:hover{ background: var(--bg-raised-hover); color: var(--text-1); }
+  .lang-select-list li[aria-selected="true"]{ color: var(--accent); font-weight: 600; }
+  .lang-select-list li[aria-selected="true"]::after{ content: '✓'; font-size: 12px; }
+
+  .btn{ display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 9px 18px; border-radius: 10px; border: 1px solid transparent; transition: transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: linear-gradient(180deg, #52E6CE, var(--accent)); color: var(--accent-ink); box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 16px -6px rgba(69,224,198,0.55); }
+  .btn-primary:hover{ box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 10px 24px -8px rgba(69,224,198,0.7); transform: translateY(-1px); }
+  .btn-ghost{ background: var(--bg-raised); color: var(--text-1); border-color: var(--border); }
+  .btn-ghost:hover{ background: var(--bg-raised-hover); border-color: #2A2E37; transform: translateY(-1px); }
+  .btn-sm{ padding: 7px 14px; font-size: 13px; border-radius: 9px; }
+  .btn-block{ width: 100%; justify-content: center; }
+  .btn[disabled]{ opacity: 0.5; pointer-events: none; }
+
+  main{ padding: 48px 0 96px; }
+
+  /* ---------- header ---------- */
+  .dash-header{ margin-bottom: 32px; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .dash-eyebrow{ display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--accent); background: var(--accent-dim); border: 1px solid #45E0C64d; padding: 6px 12px; border-radius: 999px; margin-bottom: 14px; }
+  .dash-eyebrow::before{ content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .dash-header h1{ font-size: clamp(26px, 3.6vw, 34px); font-weight: 800; letter-spacing: -0.02em; }
+  .dash-header p{ color: var(--text-2); margin-top: 6px; font-size: 14.5px; }
+
+  /* ---------- stat tiles ---------- */
+  .stats-grid{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-l); overflow: hidden; margin-bottom: 20px; }
+  .stat-tile{ background: var(--bg-raised); padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+  .stat-icon{ width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--accent-dim); color: var(--accent); }
+  .stat-icon svg{ width: 15px; height: 15px; }
+  .stat-value{ font-size: 26px; font-weight: 800; letter-spacing: -0.02em; font-family: var(--font-mono); }
+  .stat-label{ font-size: 12.5px; color: var(--text-2); }
+
+  @media (max-width: 760px){ .stats-grid{ grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---------- layout ---------- */
+  .dash-grid{ display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px){ .dash-grid{ grid-template-columns: 1fr; } }
+  .col{ display: flex; flex-direction: column; gap: 20px; }
+
+  .card{ background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 26px; }
+  .card-head{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+  .card-head h2{ font-size: 14.5px; font-weight: 700; }
+  .card-head a{ font-size: 12.5px; color: var(--text-2); }
+  .card-head a:hover{ color: var(--text-1); }
+
+  /* ---------- tool row (recently viewed) ---------- */
+  .tool-row{ display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--border-soft); }
+  .tool-row:first-of-type{ border-top: none; padding-top: 0; }
+  .tool-row-icon{ width: 38px; height: 38px; border-radius: var(--radius-m); background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tool-row-icon svg{ width: 18px; height: 18px; }
+  .tool-row-body{ flex: 1; min-width: 0; }
+  .tool-row-name{ font-size: 14.5px; font-weight: 600; }
+  .tool-row-meta{ font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+  /* ---------- favorite tools grid ---------- */
+  .fav-grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  @media (max-width: 560px){ .fav-grid{ grid-template-columns: 1fr; } }
+  .fav-card{ background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-m); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .fav-card-top{ display: flex; align-items: center; justify-content: space-between; }
+  .fav-remove{ color: var(--text-3); background: none; border: none; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 6px; }
+  .fav-remove:hover{ color: #F0664D; background: #F0664D1a; }
+  .fav-name{ font-size: 14px; font-weight: 700; }
+
+  .empty-state{ text-align: center; padding: 32px 12px; color: var(--text-3); font-size: 13.5px; }
+  .empty-state svg{ color: var(--text-3); margin-bottom: 10px; }
+
+  /* ---------- profile card ---------- */
+  .profile-row{ display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+  .profile-avatar{ width: 48px; height: 48px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+  .profile-name{ font-size: 16px; font-weight: 700; }
+  .profile-email{ font-size: 12.5px; color: var(--text-2); }
+  .field-row{ display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid var(--border-soft); font-size: 13.5px; }
+  .field-row:first-of-type{ border-top: none; }
+  .field-label{ color: var(--text-2); }
+  .role-badge{ font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em; background: var(--accent-dim); color: var(--accent); padding: 4px 10px; border-radius: 999px; text-transform: uppercase; }
+  .role-badge.is-user{ background: var(--bg); color: var(--text-2); }
+
+  /* ---------- creator card ---------- */
+  .creator-card{ background: linear-gradient(160deg, var(--bg-raised), var(--bg-raised) 60%, var(--accent-dim)); }
+  .creator-card.is-cta{ display: flex; flex-direction: column; gap: 12px; }
+  .creator-card-title{ font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
+  .creator-card-sub{ font-size: 13px; color: var(--text-2); line-height: 1.5; }
+  .creator-stats{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 4px 0 4px; }
+  .creator-stat{ text-align: center; }
+  .creator-stat-value{ font-family: var(--font-mono); font-size: 18px; font-weight: 800; }
+  .creator-stat-label{ font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+  /* ---------- quick actions ---------- */
+  .quick-actions{ display: flex; flex-direction: column; gap: 8px; }
+
+  .loading-state{ text-align: center; padding: 140px 0; color: var(--text-2); font-family: var(--font-mono); font-size: 13px; }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap">
+      <a class="logo" href="index.html">
+        <img src="/apple-touch-icon.png" width="20" height="20" alt="">
+        BuildArken
+      </a>
+      <div class="nav-links">
+        <a href="index.html" data-i18n="nav_home">Home</a>
+        <a href="tools.html" data-i18n="nav_tools">Tools</a>
+        <a href="dashboard.html" class="nav-current" data-i18n="nav_dashboard">Dashboard</a>
+      </div>
+      <div class="nav-right">
+        <div class="lang-select" id="lang-select">
+          <button type="button" class="lang-select-btn" id="lang-select-btn" aria-haspopup="listbox" aria-expanded="false">
+            <span id="lang-select-label">English</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <ul class="lang-select-list" id="lang-select-list" role="listbox">
+            <li role="option" data-lang="en" aria-selected="true">English</li>
+            <li role="option" data-lang="ar">العربية</li>
+            <li role="option" data-lang="de">Deutsch</li>
+            <li role="option" data-lang="ru">Русский</li>
+            <li role="option" data-lang="es">Español</li>
+            <li role="option" data-lang="fr">Français</li>
+          </ul>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="signout-btn" data-i18n="nav_signout">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="loading" class="loading-state">Loading…</div>
+
+  <main id="dashboard-content" style="display:none;">
+    <div class="wrap">
+
+      <div class="dash-header">
+        <div>
+          <span class="dash-eyebrow" data-i18n="dash_title">DASHBOARD</span>
+          <h1><span data-i18n="dash_welcome">Welcome back</span>, <span id="dash-first-name">there</span></h1>
+          <p data-i18n="dash_sub">Here's what's happening with your account.</p>
+        </div>
+      </div>
+
+      <!-- Quick statistics -->
+      <div class="stats-grid">
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></div>
+          <div class="stat-value" id="stat-favorites">0</div>
+          <div class="stat-label" data-i18n="stat_favorites">Favorite tools</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></div>
+          <div class="stat-value" id="stat-viewed">0</div>
+          <div class="stat-label" data-i18n="stat_viewed">Tools explored</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><line x1="3" y1="9.5" x2="21" y2="9.5"/><line x1="8" y1="2.5" x2="8" y2="6.5"/><line x1="16" y1="2.5" x2="16" y2="6.5"/></svg></div>
+          <div class="stat-value" id="stat-member-since">—</div>
+          <div class="stat-label" data-i18n="stat_member_since">Member since</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 3 6v6c0 5 4 8.5 9 10 5-1.5 9-5 9-10V6l-9-4Z"/></svg></div>
+          <div class="stat-value" id="stat-role">User</div>
+          <div class="stat-label" data-i18n="stat_role">Account type</div>
+        </div>
+      </div>
+
+      <!-- Creator statistics (shown only for creator/admin roles) -->
+      <div class="stats-grid" id="creator-stats-grid" style="display:none;">
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="stat-value" id="stat-published">0</div>
+          <div class="stat-label" data-i18n="stat_published">Published tools</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></div>
+          <div class="stat-value" id="stat-total-views">0</div>
+          <div class="stat-label" data-i18n="stat_total_views">Total views</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></div>
+          <div class="stat-value" id="stat-total-likes">0</div>
+          <div class="stat-label" data-i18n="stat_total_likes">Total likes</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="col">
+
+          <!-- Recently viewed tools -->
+          <div class="card">
+            <div class="card-head">
+              <h2 data-i18n="recent_title">Recently viewed</h2>
+              <a href="tools.html" data-i18n="explore_cta">Explore all tools</a>
+            </div>
+            <div id="recent-list"></div>
+            <div class="empty-state" id="recent-empty" style="display:none;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+              <div data-i18n="recent_empty">No tools opened yet — browse Explore Tools to get started.</div>
+            </div>
+          </div>
+
+          <!-- Favorite tools -->
+          <div class="card">
+            <div class="card-head">
+              <h2 data-i18n="fav_title">Favorite tools</h2>
+            </div>
+            <div class="fav-grid" id="fav-grid"></div>
+            <div class="empty-state" id="fav-empty" style="display:none;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+              <div data-i18n="fav_empty">No favorites yet — tap the heart on any tool to save it here.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="col">
+
+          <!-- Profile summary -->
+          <div class="card">
+            <div class="profile-row">
+              <div class="profile-avatar" id="profile-avatar">?</div>
+              <div>
+                <div class="profile-name" id="profile-name"></div>
+                <div class="profile-email" id="profile-email"></div>
+              </div>
+            </div>
+            <div class="field-row">
+              <span class="field-label" data-i18n="dash_role">Role</span>
+              <span class="role-badge" id="profile-role">user</span>
+            </div>
+            <div class="field-row">
+              <span class="field-label" data-i18n="field_member_since">Member since</span>
+              <span id="profile-created"></span>
+            </div>
+          </div>
+
+          <!-- Creator status: CTA for users, stats summary for creators -->
+          <div class="card creator-card is-cta" id="creator-cta-card">
+            <span class="creator-card-title" data-i18n="creator_cta_title">Become a Creator</span>
+            <p class="creator-card-sub" data-i18n="creator_cta_sub">Publish your own AI tools, track views and likes, and manage your listings.</p>
+            <button type="button" class="btn btn-primary btn-block" id="become-creator-btn" data-i18n="creator_cta_btn">Become a Creator</button>
+          </div>
+
+          <div class="card creator-card" id="creator-status-card" style="display:none;">
+            <span class="creator-card-title" data-i18n="creator_status_title">Creator Studio</span>
+            <p class="creator-card-sub" data-i18n="creator_status_sub">You have creator access on Arken.</p>
+            <div class="creator-stats">
+              <div class="creator-stat"><div class="creator-stat-value" id="mini-published">0</div><div class="creator-stat-label" data-i18n="stat_published">Published</div></div>
+              <div class="creator-stat"><div class="creator-stat-value" id="mini-views">0</div><div class="creator-stat-label" data-i18n="stat_total_views">Views</div></div>
+              <div class="creator-stat"><div class="creator-stat-value" id="mini-likes">0</div><div class="creator-stat-label" data-i18n="stat_total_likes">Likes</div></div>
+            </div>
+            <button type="button" class="btn btn-ghost btn-block" disabled data-i18n="creator_manage_btn">Manage tools (coming soon)</button>
+          </div>
+
+          <!-- Quick actions -->
+          <div class="card">
+            <div class="card-head"><h2 data-i18n="quick_actions_title">Quick actions</h2></div>
+            <div class="quick-actions">
+              <a class="btn btn-ghost btn-block" href="tools.html" data-i18n="dash_go_tools">Browse tools</a>
+              <button type="button" class="btn btn-ghost btn-block" id="quick-signout-btn" data-i18n="nav_signout">Sign out</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function(){
+      var SUPABASE_URL = "https://zwjntvrwepoqgrioejqa.supabase.co";
+      var SUPABASE_ANON_KEY = "sb_publishable_7SwXIR-7gPwuOg6nruekeQ_FT4dGgNp";
+      var COOKIE_DOMAIN = ""; // keep in sync with index.html/tools.html
+
+      function getCookie(name){
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+      }
+      function setCookie(name, value, days){
+        var expires = new Date(Date.now() + days * 864e5).toUTCString();
+        var domainPart = COOKIE_DOMAIN ? '; domain=' + COOKIE_DOMAIN : '';
+        document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/' + domainPart + '; SameSite=Lax; Secure';
+      }
+      function removeCookie(name){
+        var domainPart = COOKIE_DOMAIN ? '; domain=' + COOKIE_DOMAIN : '';
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + domainPart;
+      }
+      var cookieStorage = {
+        getItem: function(key){ return getCookie(key); },
+        setItem: function(key, value){ setCookie(key, value, 30); },
+        removeItem: function(key){ removeCookie(key); },
+      };
+
+      if (!window.supabase) {
+        console.error('Supabase JS failed to load.');
+        return;
+      }
+
+      var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { storage: cookieStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      });
+
+      // Static registry for the three live tools — mirrors tools.html.
+      // Keyed by the same tool_slug values stored in Supabase.
+      var TOOL_REGISTRY = {
+        compare: {
+          name: 'Compare', url: 'https://ai-model-compare-boru.vercel.app/compare',
+          icon: '<rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/>'
+        },
+        chat: {
+          name: 'Chat', url: 'chat.html',
+          icon: '<path d="M4 5.5h16v10H9l-4.2 3.5V15.5H4v-10z"/>'
+        },
+        codecheck: {
+          name: 'Code Check', url: 'https://code-check-nine.vercel.app/',
+          icon: '<path d="M8.5 6 3.5 12l5 6"/><path d="M15.5 6l5 6-5 6"/><path d="M10 13l1.7 1.7L14.5 11"/>'
+        }
+      };
+
+      var loadingEl = document.getElementById('loading');
+      var contentEl = document.getElementById('dashboard-content');
+      var currentUser = null;
+
+      function timeAgo(iso){
+        var diffMs = Date.now() - new Date(iso).getTime();
+        var mins = Math.round(diffMs / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return mins + 'm ago';
+        var hrs = Math.round(mins / 60);
+        if (hrs < 24) return hrs + 'h ago';
+        var days = Math.round(hrs / 24);
+        return days + 'd ago';
+      }
+
+      function renderRecent(rows){
+        var listEl = document.getElementById('recent-list');
+        var emptyEl = document.getElementById('recent-empty');
+        listEl.innerHTML = '';
+        if (!rows || rows.length === 0) {
+          emptyEl.style.display = '';
+          return;
+        }
+        emptyEl.style.display = 'none';
+        rows.forEach(function(row){
+          var tool = TOOL_REGISTRY[row.tool_slug];
+          if (!tool) return;
+          var el = document.createElement('a');
+          el.href = tool.url;
+          el.className = 'tool-row';
+          el.innerHTML =
+            '<div class="tool-row-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + tool.icon + '</svg></div>' +
+            '<div class="tool-row-body"><div class="tool-row-name">' + tool.name + '</div><div class="tool-row-meta">' + timeAgo(row.last_viewed_at) + '</div></div>';
+          listEl.appendChild(el);
+        });
+      }
+
+      function renderFavorites(rows){
+        var gridEl = document.getElementById('fav-grid');
+        var emptyEl = document.getElementById('fav-empty');
+        gridEl.innerHTML = '';
+        if (!rows || rows.length === 0) {
+          emptyEl.style.display = '';
+          gridEl.style.display = 'none';
+          return;
+        }
+        emptyEl.style.display = 'none';
+        gridEl.style.display = '';
+        rows.forEach(function(row){
+          var tool = TOOL_REGISTRY[row.tool_slug];
+          if (!tool) return;
+          var card = document.createElement('div');
+          card.className = 'fav-card';
+          card.innerHTML =
+            '<div class="fav-card-top">' +
+              '<div class="tool-row-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + tool.icon + '</svg></div>' +
+              '<button type="button" class="fav-remove" data-slug="' + row.tool_slug + '" aria-label="Remove favorite"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>' +
+            '</div>' +
+            '<div class="fav-name">' + tool.name + '</div>' +
+            '<a class="btn btn-ghost btn-sm" href="' + tool.url + '" data-i18n="card_open">Open</a>';
+          gridEl.appendChild(card);
+        });
+        gridEl.querySelectorAll('.fav-remove').forEach(function(btn){
+          btn.addEventListener('click', function(){
+            var slug = btn.getAttribute('data-slug');
+            sb.from('user_favorites').delete().eq('user_id', currentUser.id).eq('tool_slug', slug).then(function(){
+              loadFavorites();
+            });
+          });
+        });
+      }
+
+      function loadFavorites(){
+        sb.from('user_favorites').select('tool_slug, created_at').eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false })
+          .then(function(res){
+            var rows = res.data || [];
+            document.getElementById('stat-favorites').textContent = rows.length;
+            renderFavorites(rows);
+          });
+      }
+
+      function loadRecent(){
+        sb.from('user_recent_tools').select('tool_slug, last_viewed_at, view_count').eq('user_id', currentUser.id)
+          .order('last_viewed_at', { ascending: false }).limit(5)
+          .then(function(res){
+            var rows = res.data || [];
+            renderRecent(rows);
+            sb.from('user_recent_tools').select('tool_slug', { count: 'exact', head: true }).eq('user_id', currentUser.id)
+              .then(function(countRes){
+                document.getElementById('stat-viewed').textContent = countRes.count || 0;
+              });
+          });
+      }
+
+      function loadCreatorStats(){
+        sb.from('published_tools').select('views, likes').eq('creator_id', currentUser.id)
+          .then(function(res){
+            var rows = res.data || [];
+            var totalViews = rows.reduce(function(sum, r){ return sum + (r.views || 0); }, 0);
+            var totalLikes = rows.reduce(function(sum, r){ return sum + (r.likes || 0); }, 0);
+            document.getElementById('stat-published').textContent = rows.length;
+            document.getElementById('stat-total-views').textContent = totalViews;
+            document.getElementById('stat-total-likes').textContent = totalLikes;
+            document.getElementById('mini-published').textContent = rows.length;
+            document.getElementById('mini-views').textContent = totalViews;
+            document.getElementById('mini-likes').textContent = totalLikes;
+          });
+      }
+
+      function applyRole(role){
+        var isCreator = role === 'creator' || role === 'admin';
+        document.getElementById('stat-role').textContent = isCreator ? 'Creator' : 'User';
+        document.getElementById('profile-role').textContent = role;
+        document.getElementById('profile-role').classList.toggle('is-user', !isCreator);
+        document.getElementById('creator-stats-grid').style.display = isCreator ? '' : 'none';
+        document.getElementById('creator-cta-card').style.display = isCreator ? 'none' : '';
+        document.getElementById('creator-status-card').style.display = isCreator ? '' : 'none';
+        if (isCreator) loadCreatorStats();
+      }
+
+      function fillDashboard(user, profile){
+        currentUser = user;
+        var displayName = (profile && profile.full_name) ||
+          (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) ||
+          user.email || 'there';
+        var firstName = displayName.split(' ')[0];
+
+        document.getElementById('dash-first-name').textContent = firstName;
+        document.getElementById('profile-name').textContent = displayName;
+        document.getElementById('profile-email').textContent = user.email || '';
+        document.getElementById('profile-avatar').textContent = firstName.charAt(0).toUpperCase();
+
+        var createdAt = (profile && profile.created_at) || user.created_at;
+        if (createdAt) {
+          try {
+            var d = new Date(createdAt);
+            document.getElementById('profile-created').textContent = d.toLocaleDateString();
+            document.getElementById('stat-member-since').textContent = d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+          } catch(e){}
+        }
+
+        applyRole((profile && profile.role) || 'user');
+        loadFavorites();
+        loadRecent();
+
+        loadingEl.style.display = 'none';
+        contentEl.style.display = '';
+      }
+
+      function loadProfile(user){
+        sb.from('profiles').select('*').eq('id', user.id).single().then(function(res){
+          fillDashboard(user, res.data);
+        }, function(){
+          fillDashboard(user, null);
+        });
+      }
+
+      sb.auth.getSession().then(function(res){
+        var session = res.data.session;
+        if (!session) {
+          window.location.replace('index.html');
+          return;
+        }
+        loadProfile(session.user);
+      });
+
+      sb.auth.onAuthStateChange(function(event, session){
+        if (!session) window.location.replace('index.html');
+      });
+
+      function doSignOut(){
+        sb.auth.signOut().then(function(){ window.location.replace('index.html'); });
+      }
+      document.getElementById('signout-btn').addEventListener('click', doSignOut);
+      document.getElementById('quick-signout-btn').addEventListener('click', doSignOut);
+
+      document.getElementById('become-creator-btn').addEventListener('click', function(btnEvent){
+        var btn = btnEvent.currentTarget;
+        btn.disabled = true;
+        sb.from('profiles').update({ role: 'creator' }).eq('id', currentUser.id).then(function(res){
+          btn.disabled = false;
+          if (res.error) return;
+          applyRole('creator');
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    (function(){
+      var LANG_NAMES = { en: "English", ar: "العربية", de: "Deutsch", ru: "Русский", es: "Español", fr: "Français" };
+      var RTL_LANGS = ["ar"];
+
+      var STRINGS = {
+        en: {
+          nav_home: "Home", nav_tools: "Tools", nav_dashboard: "Dashboard", nav_signout: "Sign out",
+          dash_title: "DASHBOARD", dash_welcome: "Welcome back",
+          dash_sub: "Here's what's happening with your account.",
+          stat_favorites: "Favorite tools", stat_viewed: "Tools explored", stat_member_since: "Member since", stat_role: "Account type",
+          stat_published: "Published tools", stat_total_views: "Total views", stat_total_likes: "Total likes",
+          recent_title: "Recently viewed", recent_empty: "No tools opened yet — browse Explore Tools to get started.",
+          fav_title: "Favorite tools", fav_empty: "No favorites yet — tap the heart on any tool to save it here.",
+          explore_cta: "Explore all tools", dash_go_tools: "Browse tools",
+          dash_role: "Role", field_member_since: "Member since",
+          creator_cta_title: "Become a Creator", creator_cta_sub: "Publish your own AI tools, track views and likes, and manage your listings.", creator_cta_btn: "Become a Creator",
+          creator_status_title: "Creator Studio", creator_status_sub: "You have creator access on Arken.", creator_manage_btn: "Manage tools (coming soon)",
+          quick_actions_title: "Quick actions", card_open: "Open"
+        },
+        ar: {
+          nav_home: "الرئيسية", nav_tools: "الأدوات", nav_dashboard: "لوحة التحكم", nav_signout: "تسجيل الخروج",
+          dash_title: "لوحة التحكم", dash_welcome: "مرحبًا بعودتك",
+          dash_sub: "إليك آخر ما يحدث في حسابك.",
+          stat_favorites: "الأدوات المفضّلة", stat_viewed: "الأدوات المستكشفة", stat_member_since: "عضو منذ", stat_role: "نوع الحساب",
+          stat_published: "الأدوات المنشورة", stat_total_views: "إجمالي المشاهدات", stat_total_likes: "إجمالي الإعجابات",
+          recent_title: "شوهدت مؤخرًا", recent_empty: "لم تفتح أي أداة بعد — تصفح صفحة استكشاف الأدوات للبدء.",
+          fav_title: "الأدوات المفضّلة", fav_empty: "لا توجد أدوات مفضّلة بعد — اضغط على أيقونة القلب في أي أداة لحفظها هنا.",
+          explore_cta: "استكشاف جميع الأدوات", dash_go_tools: "تصفح الأدوات",
+          dash_role: "الدور", field_member_since: "عضو منذ",
+          creator_cta_title: "كن منشئًا", creator_cta_sub: "انشر أدواتك الخاصة، وتابع المشاهدات والإعجابات، وأدر قوائمك.", creator_cta_btn: "كن منشئًا",
+          creator_status_title: "استوديو المنشئين", creator_status_sub: "لديك صلاحية المنشئ على آركن.", creator_manage_btn: "إدارة الأدوات (قريبًا)",
+          quick_actions_title: "إجراءات سريعة", card_open: "فتح"
+        },
+        de: {
+          nav_home: "Startseite", nav_tools: "Tools", nav_dashboard: "Dashboard", nav_signout: "Abmelden",
+          dash_title: "DASHBOARD", dash_welcome: "Willkommen zurück",
+          dash_sub: "Das passiert gerade in deinem Konto.",
+          stat_favorites: "Favoriten", stat_viewed: "Erkundete Tools", stat_member_since: "Mitglied seit", stat_role: "Kontotyp",
+          stat_published: "Veröffentlichte Tools", stat_total_views: "Aufrufe gesamt", stat_total_likes: "Likes gesamt",
+          recent_title: "Zuletzt angesehen", recent_empty: "Noch keine Tools geöffnet — schau bei Tools entdecken vorbei.",
+          fav_title: "Favoriten", fav_empty: "Noch keine Favoriten — tippe bei einem Tool auf das Herz, um es hier zu speichern.",
+          explore_cta: "Alle Tools entdecken", dash_go_tools: "Tools durchsuchen",
+          dash_role: "Rolle", field_member_since: "Mitglied seit",
+          creator_cta_title: "Werde Creator", creator_cta_sub: "Veröffentliche eigene KI-Tools, verfolge Aufrufe und Likes und verwalte deine Einträge.", creator_cta_btn: "Werde Creator",
+          creator_status_title: "Creator Studio", creator_status_sub: "Du hast Creator-Zugriff auf Arken.", creator_manage_btn: "Tools verwalten (bald verfügbar)",
+          quick_actions_title: "Schnellaktionen", card_open: "Öffnen"
+        },
+        ru: {
+          nav_home: "Главная", nav_tools: "Инструменты", nav_dashboard: "Панель управления", nav_signout: "Выйти",
+          dash_title: "ПАНЕЛЬ УПРАВЛЕНИЯ", dash_welcome: "С возвращением",
+          dash_sub: "Вот что происходит в вашем аккаунте.",
+          stat_favorites: "Избранные инструменты", stat_viewed: "Изученные инструменты", stat_member_since: "Участник с", stat_role: "Тип аккаунта",
+          stat_published: "Опубликованные инструменты", stat_total_views: "Всего просмотров", stat_total_likes: "Всего лайков",
+          recent_title: "Недавно просмотренные", recent_empty: "Вы ещё не открывали инструменты — посмотрите раздел «Все инструменты».",
+          fav_title: "Избранные инструменты", fav_empty: "Пока нет избранного — нажмите на сердечко у любого инструмента, чтобы сохранить его здесь.",
+          explore_cta: "Все инструменты", dash_go_tools: "Все инструменты",
+          dash_role: "Роль", field_member_since: "Участник с",
+          creator_cta_title: "Стать автором", creator_cta_sub: "Публикуйте свои ИИ-инструменты, отслеживайте просмотры и лайки, управляйте списками.", creator_cta_btn: "Стать автором",
+          creator_status_title: "Студия автора", creator_status_sub: "У вас есть доступ автора на Arken.", creator_manage_btn: "Управление инструментами (скоро)",
+          quick_actions_title: "Быстрые действия", card_open: "Открыть"
+        },
+        es: {
+          nav_home: "Inicio", nav_tools: "Herramientas", nav_dashboard: "Panel", nav_signout: "Cerrar sesión",
+          dash_title: "PANEL", dash_welcome: "Bienvenido de nuevo",
+          dash_sub: "Esto es lo que pasa en tu cuenta.",
+          stat_favorites: "Herramientas favoritas", stat_viewed: "Herramientas exploradas", stat_member_since: "Miembro desde", stat_role: "Tipo de cuenta",
+          stat_published: "Herramientas publicadas", stat_total_views: "Vistas totales", stat_total_likes: "Me gusta totales",
+          recent_title: "Vistas recientemente", recent_empty: "Aún no has abierto ninguna herramienta — explora las herramientas para empezar.",
+          fav_title: "Herramientas favoritas", fav_empty: "Aún no tienes favoritos — toca el corazón en cualquier herramienta para guardarla aquí.",
+          explore_cta: "Ver todas las herramientas", dash_go_tools: "Ver herramientas",
+          dash_role: "Rol", field_member_since: "Miembro desde",
+          creator_cta_title: "Conviértete en Creador", creator_cta_sub: "Publica tus propias herramientas de IA, controla vistas y me gusta, y gestiona tus listados.", creator_cta_btn: "Conviértete en Creador",
+          creator_status_title: "Estudio de Creador", creator_status_sub: "Tienes acceso de creador en Arken.", creator_manage_btn: "Gestionar herramientas (próximamente)",
+          quick_actions_title: "Acciones rápidas", card_open: "Abrir"
+        },
+        fr: {
+          nav_home: "Accueil", nav_tools: "Outils", nav_dashboard: "Tableau de bord", nav_signout: "Déconnexion",
+          dash_title: "TABLEAU DE BORD", dash_welcome: "Bon retour",
+          dash_sub: "Voici ce qui se passe sur votre compte.",
+          stat_favorites: "Outils favoris", stat_viewed: "Outils explorés", stat_member_since: "Membre depuis", stat_role: "Type de compte",
+          stat_published: "Outils publiés", stat_total_views: "Vues totales", stat_total_likes: "Mentions J'aime totales",
+          recent_title: "Consultés récemment", recent_empty: "Aucun outil ouvert pour l'instant — direction Explorer les outils pour commencer.",
+          fav_title: "Outils favoris", fav_empty: "Aucun favori pour l'instant — touchez le cœur sur un outil pour l'enregistrer ici.",
+          explore_cta: "Voir tous les outils", dash_go_tools: "Voir les outils",
+          dash_role: "Rôle", field_member_since: "Membre depuis",
+          creator_cta_title: "Devenir Créateur", creator_cta_sub: "Publiez vos propres outils IA, suivez les vues et les mentions J'aime, et gérez vos annonces.", creator_cta_btn: "Devenir Créateur",
+          creator_status_title: "Studio Créateur", creator_status_sub: "Vous avez un accès créateur sur Arken.", creator_manage_btn: "Gérer les outils (bientôt)",
+          quick_actions_title: "Actions rapides", card_open: "Ouvrir"
+        }
+      };
+
+      function applyLang(lang){
+        var dict = STRINGS[lang] || STRINGS.en;
+        document.documentElement.setAttribute('lang', lang);
+        document.documentElement.setAttribute('dir', RTL_LANGS.indexOf(lang) > -1 ? 'rtl' : 'ltr');
+        document.querySelectorAll('[data-i18n]').forEach(function(el){
+          var key = el.getAttribute('data-i18n');
+          if (dict[key]) el.textContent = dict[key];
+        });
+        var label = document.getElementById('lang-select-label');
+        if (label) label.textContent = LANG_NAMES[lang] || LANG_NAMES.en;
+        document.querySelectorAll('#lang-select-list li').forEach(function(li){
+          li.setAttribute('aria-selected', li.getAttribute('data-lang') === lang ? 'true' : 'false');
+        });
+        try { localStorage.setItem('arken_lang', lang); } catch(e){}
+      }
+
+      var saved = 'en';
+      try { saved = localStorage.getItem('arken_lang') || 'en'; } catch(e){}
+      applyLang(saved);
+
+      var langSelect = document.getElementById('lang-select');
+      var langSelectBtn = document.getElementById('lang-select-btn');
+      var langSelectList = document.getElementById('lang-select-list');
+
+      function openLangList(){ langSelect.classList.add('open'); langSelectBtn.setAttribute('aria-expanded', 'true'); }
+      function closeLangList(){ langSelect.classList.remove('open'); langSelectBtn.setAttribute('aria-expanded', 'false'); }
+
+      if (langSelectBtn){
+        langSelectBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          langSelect.classList.contains('open') ? closeLangList() : openLangList();
+        });
+        langSelectList.querySelectorAll('li').forEach(function(li){
+          li.addEventListener('click', function(){ applyLang(li.getAttribute('data-lang')); closeLangList(); });
+        });
+        document.addEventListener('click', function(e){ if (!langSelect.contains(e.target)) closeLangList(); });
+        document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeLangList(); });
+      }
+    })();
+  </script>
+
+</body>
+</html>
