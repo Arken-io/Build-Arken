@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Arken: Build better AI workflows</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D;
+    --bg-raised: #111318;
+    --bg-raised-hover: #15181E;
+    --border: #1E2128;
+    --border-soft: #191C22;
+    --text-1: #EDEEF1;
+    --text-2: #9498A3;
+    --text-3: #5A5E68;
+    --accent: #45E0C6;
+    --accent-dim: #45E0C633;
+    --accent-ink: #06110F;
+    --status-alpha: #F0A23D;
+    --status-beta: #5B8DEF;
+    --status-stable: #45E0C6;
+    --radius-s: 8px;
+    --radius-m: 12px;
+    --radius-l: 20px;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --container: 1180px;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  /* ---------- mobile background fix ----------
+     Root cause of the "background slides on scroll" bug: once the
+     document (<html>/<body>) itself is the scrolling element, mobile
+     Safari/Chrome recompute fixed-position layers on every scroll tick
+     (and again on address-bar collapse), so a fixed background visibly
+     lags/slides. Fix: make <body> the ONLY scroll container. <html> never
+     scrolls, so anything `position:fixed` is now fixed to a viewport that
+     never moves, and mobile browsers no longer have to reposition it. */
+  html{
+    height: 100%;
+    overflow: hidden;
+  }
+  body{
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a{ color: inherit; text-decoration: none; }
+  button{ font-family: inherit; cursor: pointer; }
+  ul{ list-style: none; }
+
+  html[dir="rtl"] body{ text-align: right; }
+
+  :focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .wrap{
+    max-width: var(--container);
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ---------- background layer ---------- */
+  .bg-nebula{
+    position: fixed;
+    inset: 0;
+    z-index: -4;
+    pointer-events: none;
+    background:
+      radial-gradient(560px 460px at 58% 42%, rgba(140,235,255,0.5), transparent 62%),
+      radial-gradient(480px 380px at 63% 52%, rgba(70,190,230,0.32), transparent 66%),
+      radial-gradient(820px 640px at 42% 58%, rgba(35,95,140,0.22), transparent 70%),
+      radial-gradient(1200px 900px at 50% 30%, rgba(20,40,70,0.35), transparent 75%),
+      linear-gradient(180deg, #05070c 0%, #030407 100%);
+  }
+
+  #space-bg{
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center bottom;
+    display: block;
+  }
+
+  .bg-overlay{
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(5,7,12,0.35) 0%, rgba(5,7,12,0.2) 30%, rgba(5,7,12,0.6) 100%);
+  }
+
+  /* ---------- nav ---------- */
+  .nav{
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10,11,13,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-bar{
+    height: 64px;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    grid-template-areas: "logo logo menu login";
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo{
+    grid-area: logo;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-weight: 700;
+    font-size: 16px;
+    letter-spacing: -0.01em;
+  }
+
+  .logo img{ display:block; border-radius: 6px; }
+
+  .menu-btn{
+    grid-area: menu;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-s);
+    color: var(--text-2);
+    background: transparent;
+    border: 1px solid transparent;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .menu-btn:hover{ color: var(--text-1); background: var(--bg-raised); border-color: var(--border); }
+
+  .login-slot{ grid-area: login; display:flex; align-items:center; }
+
+  .btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    white-space: nowrap;
+  }
+  .btn:active{ transform: scale(0.97); }
+
+  .btn-primary{
+    background: linear-gradient(180deg, #52E6CE, var(--accent));
+    color: var(--accent-ink);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 16px -6px rgba(69,224,198,0.55);
+  }
+  .btn-primary:hover{ box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 10px 24px -8px rgba(69,224,198,0.7); transform: translateY(-1px); }
+
+  .btn-ghost{
+    background: var(--bg-raised);
+    color: var(--text-1);
+    border-color: var(--border);
+  }
+  .btn-ghost:hover{ background: var(--bg-raised-hover); border-color: #2A2E37; transform: translateY(-1px); }
+
+  .btn-sm{ padding: 7px 14px; font-size: 13px; border-radius: 9px; }
+
+  .auth-user-chip{
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px 5px 6px;
+    border-radius: 999px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+  }
+  .auth-user-chip.open{ display: flex; }
+  .auth-user-avatar{
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 11.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .auth-user-label{
+    font-size: 13px; font-weight: 600;
+    max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .auth-signout-btn{
+    color: var(--text-3); font-size: 12px; background: none; border: none; padding: 0;
+  }
+  .auth-signout-btn:hover{ color: var(--text-1); }
+
+  /* ---------- drawer menu ---------- */
+  .drawer-overlay{
+    position: fixed; inset: 0; z-index: 90;
+    background: rgba(3,4,7,0.6);
+    backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .drawer-overlay.open{ opacity: 1; pointer-events: auto; }
+
+  .drawer{
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 91;
+    width: min(320px, 84vw);
+    background: #0D0F13;
+    border-right: 1px solid var(--border);
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(.2,.8,.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 20px 22px 28px;
+  }
+  html[dir="rtl"] .drawer{ left: auto; right: 0; border-right: none; border-left: 1px solid var(--border); transform: translateX(100%); }
+  .drawer.open{ transform: translateX(0); }
+
+  .drawer-head{
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .drawer-close{
+    width: 32px; height: 32px; border-radius: var(--radius-s);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2); background: transparent; border: none;
+  }
+  .drawer-close:hover{ background: var(--bg-raised); color: var(--text-1); }
+
+  .drawer-nav{ display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .drawer-nav a{
+    padding: 11px 10px;
+    border-radius: var(--radius-s);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-1);
+    transition: background 0.15s ease;
+  }
+  .drawer-nav a:hover{ background: var(--bg-raised); }
+
+  .drawer-divider{ height: 1px; background: var(--border-soft); margin: 16px 0; }
+
+  .drawer-lang{ display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; }
+  .drawer-lang-label{ font-size: 12px; color: var(--text-3); font-family: var(--font-mono); letter-spacing: 0.04em; }
+  .drawer-lang-btn{
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; color: var(--text-1);
+    font-size: 14px; font-weight: 600; padding: 4px 0;
+  }
+  .drawer-lang-btn svg{ color: var(--text-3); }
+
+  .drawer-social{ display: flex; flex-direction: column; gap: 2px; }
+  .drawer-social a{
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px;
+    border-radius: var(--radius-s);
+    font-size: 14px; color: var(--text-2);
+  }
+  .drawer-social a:hover{ background: var(--bg-raised); color: var(--text-1); }
+  .drawer-social a svg{ flex-shrink: 0; }
+
+  .drawer-legal{ display: flex; flex-direction: column; gap: 2px; }
+  .drawer-legal a{
+    padding: 9px 10px;
+    border-radius: var(--radius-s);
+    font-size: 13px; color: var(--text-3);
+  }
+  .drawer-legal a:hover{ background: var(--bg-raised); color: var(--text-2); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding: 168px 0 120px;
+    text-align: center;
+    position: relative;
+  }
+
+  .arc-wrap{
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 720px;
+    max-width: 90vw;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .arc-wrap svg{ width: 100%; height: auto; }
+  .arc-path{ stroke-dasharray: 4 10; animation: dashFlow 6s linear infinite; }
+  @keyframes dashFlow{ to{ stroke-dashoffset: -140; } }
+
+  .hero h1{
+    font-size: clamp(40px, 6.2vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+    max-width: 760px;
+    margin: 0 auto 20px;
+  }
+
+  .hero p{
+    font-size: 18px;
+    color: var(--text-2);
+    max-width: 480px;
+    margin: 0 auto 40px;
+  }
+
+  .hero-actions{ display: flex; align-items: center; justify-content: center; }
+  .hero-actions .btn{ padding: 13px 26px; font-size: 15px; }
+
+  /* ---------- section shell ---------- */
+  .section{ padding: 120px 0; }
+
+  .section-head{
+    text-align: center;
+    max-width: 520px;
+    margin: 0 auto 56px;
+  }
+  .section-eyebrow{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
+    margin-bottom: 12px;
+    display: block;
+  }
+  .section-head h2{
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .section-head p{ color: var(--text-2); font-size: 15.5px; }
+
+  .card-top{ display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; }
+  .card-icon{
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-m);
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+  .card-icon svg{ width: 19px; height: 19px; display: block; }
+
+  .badge{
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.06em;
+    color: var(--text-2);
+  }
+  .badge .dot{ width: 6px; height: 6px; border-radius: 50%; }
+  .badge[data-status="alpha"] .dot{ background: var(--status-alpha); box-shadow: 0 0 6px var(--status-alpha); }
+  .badge[data-status="beta"] .dot{ background: var(--status-beta); box-shadow: 0 0 6px var(--status-beta); }
+  .badge[data-status="stable"] .dot{ background: var(--status-stable); box-shadow: 0 0 6px var(--status-stable); }
+
+  /* ---------- product grid ---------- */
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    overflow: hidden;
+  }
+  .card{
+    position: relative;
+    background: var(--bg-raised);
+    padding: 28px 26px;
+    display: flex; flex-direction: column; gap: 14px;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    isolation: isolate;
+  }
+  .card::before{
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(180px circle at var(--mx, 50%) var(--my, 0%), var(--accent-dim), transparent 70%);
+    opacity: 0; transition: opacity 0.25s ease; z-index: -1;
+  }
+  .card:hover{ background: var(--bg-raised-hover); transform: scale(1.02); box-shadow: 0 18px 44px rgba(0,0,0,0.5); z-index: 2; }
+  .card:hover::before{ opacity: 1; }
+  .card h3{ font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .card p{ font-size: 13.5px; color: var(--text-2); line-height: 1.55; flex: 1; }
+  .card-actions{ display: flex; gap: 8px; margin-top: 4px; }
+
+  .section-cta{ text-align: center; margin-top: 40px; }
+
+  /* ---------- footer ---------- */
+  .footer{ border-top: 1px solid var(--border-soft); padding: 40px 0; }
+  .footer .wrap{ display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+  .footer-links{ display: flex; gap: 24px; font-size: 13.5px; color: var(--text-2); }
+  .footer-links a:hover{ color: var(--text-1); }
+  .footer-copy{ font-size: 13px; color: var(--text-3); font-family: var(--font-mono); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 900px){
+    .grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 640px){
+    .nav-bar{ grid-template-columns: auto 1fr auto; grid-template-areas: "menu logo login"; }
+    .logo{ justify-self: center; }
+    .wrap{ padding: 0 18px; }
+    .hero{ padding: 128px 0 88px; }
+    .hero p{ max-width: 340px; }
+    .section{ padding: 84px 0; }
+    .grid{ grid-template-columns: 1fr; }
+    .footer .wrap{ flex-direction: column; align-items: flex-start; }
+    .auth-user-label{ max-width: 56px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  /* ---------- auth modal ---------- */
+  .auth-overlay{
+    position: fixed; inset: 0; z-index: 92;
+    background: rgba(3,4,7,0.72);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .auth-overlay.open{ display: flex; }
+  .auth-modal{
+    width: 100%; max-width: 380px;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    padding: 28px 26px 24px;
+    position: relative;
+  }
+  .auth-modal h2{ font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .auth-modal p.auth-sub{ color: var(--text-2); font-size: 13.5px; margin-bottom: 20px; }
+  .auth-close{
+    position: absolute; top: 14px; right: 14px;
+    width: 28px; height: 28px; border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-2); background: transparent; border: none;
+  }
+  .auth-close:hover{ background: var(--bg-raised-hover); color: var(--text-1); }
+  .auth-oauth-btn{
+    width: 100%; display: flex; align-items: center; justify-content: center;
+    gap: 10px; padding: 11px 14px; margin-bottom: 10px;
+    border-radius: var(--radius-s); border: 1px solid var(--border);
+    background: var(--bg); color: var(--text-1);
+    font-size: 14px; font-weight: 600; transition: border-color .15s, background .15s;
+  }
+  .auth-oauth-btn:hover{ border-color: var(--accent); background: var(--bg-raised-hover); }
+  .auth-divider{
+    display: flex; align-items: center; gap: 10px;
+    color: var(--text-3); font-size: 12px; margin: 16px 0;
+  }
+  .auth-divider::before, .auth-divider::after{ content: ''; flex: 1; height: 1px; background: var(--border); }
+  .auth-email-row{ display: flex; gap: 8px; }
+  .auth-email-row input{
+    flex: 1; background: var(--bg); border: 1px solid var(--border); color: var(--text-1);
+    border-radius: var(--radius-s); padding: 10px 12px; font-size: 13.5px; font-family: inherit;
+  }
+  .auth-email-row input:focus{ outline: none; border-color: var(--accent); }
+  .auth-email-btn{
+    background: var(--accent); color: var(--accent-ink); border: none;
+    border-radius: var(--radius-s); padding: 0 16px; font-size: 13px; font-weight: 700;
+  }
+  .auth-status{ margin-top: 12px; font-size: 12.5px; min-height: 16px; }
+  .auth-status.ok{ color: var(--accent); }
+  .auth-status.err{ color: #F0664D; }
+</style>
+</head>
+<body>
+
+  <div class="bg-nebula"></div>
+  <img id="space-bg" src="moon-bg.jpg" alt="" aria-hidden="true">
+  <div class="bg-overlay"></div>
+
+  <nav class="nav">
+    <div class="wrap nav-bar">
+      <button type="button" class="menu-btn" id="menu-btn" aria-label="Open menu" aria-expanded="false" aria-controls="drawer">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <a class="logo" href="index.html">
+        <img src="/apple-touch-icon.png" width="22" height="22" alt="">
+        ARKEN
+      </a>
+
+      <div class="login-slot">
+        <span class="auth-user-chip" id="auth-user-chip">
+          <span class="auth-user-avatar" id="auth-user-avatar">?</span>
+          <span class="auth-user-label" id="auth-user-label"></span>
+          <button type="button" class="auth-signout-btn" id="auth-signout-btn" data-i18n="nav_signout">Sign out</button>
+        </span>
+        <button type="button" class="btn btn-primary btn-sm" id="auth-open-btn" data-i18n="nav_signin">Login</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="drawer-overlay" id="drawer-overlay"></div>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <a class="logo" href="index.html">
+        <img src="/apple-touch-icon.png" width="22" height="22" alt="">
+        ARKEN
+      </a>
+      <button type="button" class="drawer-close" id="drawer-close" aria-label="Close menu">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    <nav class="drawer-nav">
+      <a href="index.html" data-i18n="nav_home">Home</a>
+      <a href="tools.html" data-i18n="nav_explore">Explore Tools</a>
+      <a href="#" data-i18n="nav_creators">Creators</a>
+      <a href="#" data-i18n="nav_docs">Docs</a>
+      <a href="#" data-i18n="nav_roadmap">Roadmap</a>
+    </nav>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-lang">
+      <span class="drawer-lang-label" data-i18n="drawer_lang">LANGUAGE</span>
+      <button type="button" class="drawer-lang-btn" id="lang-toggle" aria-label="Switch language">
+        <span id="lang-toggle-label">English</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-social">
+      <a href="https://x.com/buildArken" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.9 1.5h3.68l-8.04 9.19L24 22.5h-7.4l-5.8-7.58-6.63 7.58H.49l8.6-9.83L0 1.5h7.59l5.24 6.93L18.9 1.5Zm-1.29 18.9h2.04L6.5 3.48H4.3l13.31 16.92Z"/></svg>
+        Twitter
+      </a>
+      <a href="https://t.me/BuildArken" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.05 2.94a1.6 1.6 0 0 0-1.66-.2L1.98 10.4c-.76.3-1.05.9-.98 1.4.07.5.47 1 1.24 1.19l4.6 1.44 1.77 5.7c.15.5.55.9 1.1.94.5.04.98-.2 1.28-.6l2.6-3.3 4.98 3.66c.34.25.75.36 1.14.28.5-.1.9-.46 1.05-.96L23.9 4.36c.17-.6-.03-1.15-.85-1.42ZM9.6 14.02l-.75 3.9-1.4-4.5 10.6-6.9-8.45 7.5Z"/></svg>
+        Telegram
+      </a>
+      <a href="https://github.com/Arken-io" target="_blank" rel="noopener">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.66.5 12.03c0 5.1 3.29 9.42 7.86 10.95.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.4-3.87-1.4-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.75 2.7 1.25 3.36.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.6.23 2.77.12 3.06.74.81 1.18 1.83 1.18 3.09 0 4.42-2.7 5.38-5.27 5.66.42.36.78 1.08.78 2.18v3.23c0 .32.21.67.8.56A11.53 11.53 0 0 0 23.5 12.03C23.5 5.66 18.35.5 12 .5Z"/></svg>
+        GitHub
+      </a>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-legal">
+      <a href="#" data-i18n="footer_privacy">Privacy Policy</a>
+      <a href="#" data-i18n="footer_terms">Terms of Service</a>
+      <a href="#" data-i18n="footer_cookies">Cookie Policy</a>
+    </div>
+  </aside>
+
+  <header class="hero">
+    <div class="arc-wrap" aria-hidden="true">
+      <svg viewBox="0 0 720 200" fill="none">
+        <path class="arc-path" d="M10 190C10 90 160 20 360 20S710 90 710 190" stroke="#45E0C6" stroke-opacity="0.35" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="wrap">
+      <h1 data-i18n="hero_title">Build better AI workflows.</h1>
+      <p data-i18n="hero_sub">One workspace for every AI tool you need.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tools.html" data-i18n="hero_cta">Explore Tools</a>
+      </div>
+    </div>
+  </header>
+
+  <section class="section explore-section" id="explore">
+    <div class="wrap">
+      <div class="section-head">
+        <span class="section-eyebrow" data-i18n="home_products_eyebrow">WHAT'S INSIDE</span>
+        <h2 data-i18n="home_products_h2">Three tools, live today</h2>
+        <p data-i18n="home_products_sub">Jump straight in, no setup beyond your own API key.</p>
+      </div>
+
+      <div class="grid">
+        <article class="card">
+          <div class="card-top">
+            <span class="badge" data-status="alpha"><span class="dot"></span>ALPHA</span>
+          </div>
+          <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
+          <h3>Compare</h3>
+          <p>Side-by-side comparisons across models, providers, and outputs.</p>
+          <div class="card-actions">
+            <a class="btn btn-primary btn-sm" href="https://ai-model-compare-boru.vercel.app/compare">Open</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-top">
+            <span class="badge" data-status="alpha"><span class="dot"></span>ALPHA</span>
+          </div>
+          <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-4.2 3.5V15.5H4v-10z"/></svg></div>
+          <h3>Chat</h3>
+          <p>A fast, distraction-free interface for any model.</p>
+          <div class="card-actions">
+            <a class="btn btn-primary btn-sm" href="chat.html">Open</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-top">
+            <span class="badge" data-status="alpha"><span class="dot"></span>ALPHA</span>
+          </div>
+          <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 6 3.5 12l5 6"/><path d="M15.5 6l5 6-5 6"/><path d="M10 13l1.7 1.7L14.5 11"/></svg></div>
+          <h3>Code Check</h3>
+          <p>Paste code, get an instant static review: bugs, slow spots, duplication, and a score out of 10.</p>
+          <div class="card-actions">
+            <a class="btn btn-primary btn-sm" href="https://code-check-nine.vercel.app/">Open</a>
+          </div>
+        </article>
+      </div>
+
+      <div class="section-cta">
+        <a href="tools.html" class="btn btn-ghost" data-i18n="explore_cta">Explore all tools</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="auth-overlay" id="auth-overlay">
+    <div class="auth-modal">
+      <button type="button" class="auth-close" id="auth-close-btn" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <h2 data-i18n="auth_title">Sign in to Arken</h2>
+      <p class="auth-sub" data-i18n="auth_sub">One account for every tool: Compare, Chat, Code Check.</p>
+
+      <button type="button" class="auth-oauth-btn" id="auth-github-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.66.5 12.03c0 5.1 3.29 9.42 7.86 10.95.58.1.79-.25.79-.56v-2.16c-3.2.7-3.87-1.4-3.87-1.4-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.03 1.75 2.7 1.25 3.36.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.47.11-3.06 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.6.23 2.77.12 3.06.74.81 1.18 1.83 1.18 3.09 0 4.42-2.7 5.38-5.27 5.66.42.36.78 1.08.78 2.18v3.23c0 .32.21.67.8.56A11.53 11.53 0 0 0 23.5 12.03C23.5 5.66 18.35.5 12 .5Z"/></svg>
+        <span data-i18n="auth_github">Continue with GitHub</span>
+      </button>
+      <button type="button" class="auth-oauth-btn" id="auth-google-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.5 12.27c0-.79-.07-1.54-.2-2.27H12v4.3h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.55-5.17 3.55-8.66z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.07 7.93-2.9l-3.87-3.01c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.77-2.11-6.71-4.94H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.29 14.3a7.2 7.2 0 0 1 0-4.6v-3.1H1.3a12 12 0 0 0 0 10.8z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.94 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.3 6.6l3.99 3.1C6.23 6.86 8.88 4.75 12 4.75z"/></svg>
+        <span data-i18n="auth_google">Continue with Google</span>
+      </button>
+
+      <div class="auth-divider" data-i18n="auth_or">or</div>
+
+      <div class="auth-email-row">
+        <input type="email" id="auth-email-input" placeholder="you@example.com" autocomplete="email">
+        <button type="button" class="auth-email-btn" id="auth-email-btn" data-i18n="auth_send_link">Send link</button>
+      </div>
+
+      <div class="auth-status" id="auth-status"></div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="logo">
+        <img src="/apple-touch-icon.png" width="18" height="18" alt="">
+        BuildArken
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/Arken-io" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://x.com/buildArken" target="_blank" rel="noopener">X</a>
+        <a href="https://t.me/BuildArken" target="_blank" rel="noopener">Telegram</a>
+      </div>
+      <span class="footer-copy">© 2026 Arken</span>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Drawer menu open/close --------------------------------------
+    (function(){
+      var menuBtn = document.getElementById('menu-btn');
+      var drawer = document.getElementById('drawer');
+      var overlay = document.getElementById('drawer-overlay');
+      var closeBtn = document.getElementById('drawer-close');
+
+      function openDrawer(){
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+        drawer.setAttribute('aria-hidden', 'false');
+        menuBtn.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeDrawer(){
+        drawer.classList.remove('open');
+        overlay.classList.remove('open');
+        drawer.setAttribute('aria-hidden', 'true');
+        menuBtn.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+
+      menuBtn.addEventListener('click', openDrawer);
+      closeBtn.addEventListener('click', closeDrawer);
+      overlay.addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+      });
+      drawer.querySelectorAll('.drawer-nav a').forEach(function(a){
+        a.addEventListener('click', closeDrawer);
+      });
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function(){
+      // ====================================================================
+      // FILL THESE IN before deploying — Supabase Dashboard → Project
+      // Settings → API. COOKIE_DOMAIN is what makes signing in here also
+      // count as signed-in on compare.yourdomain.com, chat.yourdomain.com,
+      // etc. Use a leading dot, and leave it "" for local testing (a
+      // dotted domain breaks cookies on localhost).
+      // ====================================================================
+      var SUPABASE_URL = "https://zwjntvrwepoqgrioejqa.supabase.co";
+      var SUPABASE_ANON_KEY = "sb_publishable_7SwXIR-7gPwuOg6nruekeQ_FT4dGgNp";
+      var COOKIE_DOMAIN = ""; // e.g. ".buildarken.com" in production
+
+      // ---- cookie-backed storage adapter -----------------------------
+      // Supabase's browser client defaults to localStorage, which is
+      // strictly per-origin and would NOT be shared across subdomains.
+      // This adapter stores the session in a cookie instead, scoped to
+      // COOKIE_DOMAIN, so every *.yourdomain.com tool sees the same
+      // session — matching what the Next.js tools' @supabase/ssr setup
+      // already does server-side (see lib/supabase/client.ts in the
+      // Compare app).
+      function getCookie(name){
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+      }
+      function setCookie(name, value, days){
+        var expires = new Date(Date.now() + days * 864e5).toUTCString();
+        var domainPart = COOKIE_DOMAIN ? '; domain=' + COOKIE_DOMAIN : '';
+        document.cookie = name + '=' + encodeURIComponent(value) +
+          '; expires=' + expires + '; path=/' + domainPart + '; SameSite=Lax; Secure';
+      }
+      function removeCookie(name){
+        var domainPart = COOKIE_DOMAIN ? '; domain=' + COOKIE_DOMAIN : '';
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + domainPart;
+      }
+      var cookieStorage = {
+        getItem: function(key){ return getCookie(key); },
+        setItem: function(key, value){ setCookie(key, value, 30); },
+        removeItem: function(key){ removeCookie(key); },
+      };
+
+      if (!window.supabase) {
+        console.error('Supabase JS failed to load — check the CDN <script> tag.');
+        return;
+      }
+
+      var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          storage: cookieStorage,
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
+
+      // ---- DOM refs ----------------------------------------------------
+      var overlay = document.getElementById('auth-overlay');
+      var openBtn = document.getElementById('auth-open-btn');
+      var closeBtn = document.getElementById('auth-close-btn');
+      var githubBtn = document.getElementById('auth-github-btn');
+      var googleBtn = document.getElementById('auth-google-btn');
+      var emailInput = document.getElementById('auth-email-input');
+      var emailBtn = document.getElementById('auth-email-btn');
+      var statusEl = document.getElementById('auth-status');
+      var userChip = document.getElementById('auth-user-chip');
+      var userAvatar = document.getElementById('auth-user-avatar');
+      var userLabel = document.getElementById('auth-user-label');
+      var signOutBtn = document.getElementById('auth-signout-btn');
+
+      function setStatus(msg, kind){
+        statusEl.textContent = msg || '';
+        statusEl.className = 'auth-status' + (kind ? ' ' + kind : '');
+      }
+
+      function openModal(){ overlay.classList.add('open'); setStatus(''); }
+      function closeModal(){ overlay.classList.remove('open'); }
+
+      openBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'Escape' && overlay.classList.contains('open')) closeModal();
+      });
+
+      // ---- OAuth (GitHub / Google) -------------------------------------
+      // Supabase handles the actual token exchange on its own servers —
+      // this page never sees a client secret, so this works from plain
+      // static HTML with no backend of ours involved.
+      githubBtn.addEventListener('click', function(){
+        sb.auth.signInWithOAuth({
+          provider: 'github',
+          options: { redirectTo: window.location.href },
+        });
+      });
+      googleBtn.addEventListener('click', function(){
+        sb.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.href },
+        });
+      });
+
+      // ---- Email magic link ---------------------------------------------
+      emailBtn.addEventListener('click', function(){
+        var email = emailInput.value.trim();
+        if (!email || email.indexOf('@') === -1) {
+          setStatus('Enter a valid email first.', 'err');
+          return;
+        }
+        emailBtn.disabled = true;
+        setStatus('Sending...');
+        sb.auth.signInWithOtp({
+          email: email,
+          options: { emailRedirectTo: window.location.href },
+        }).then(function(res){
+          emailBtn.disabled = false;
+          if (res.error) {
+            setStatus(res.error.message, 'err');
+          } else {
+            setStatus('Check your inbox for a sign-in link.', 'ok');
+          }
+        });
+      });
+
+      // ---- Nav auth-state sync ------------------------------------------
+      function renderSignedIn(user){
+        var name = (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) || user.email || 'Account';
+        userLabel.textContent = name.split(' ')[0];
+        userAvatar.textContent = name.charAt(0).toUpperCase();
+        userChip.classList.add('open');
+        openBtn.style.display = 'none';
+        closeModal();
+      }
+      function renderSignedOut(){
+        userChip.classList.remove('open');
+        openBtn.style.display = '';
+      }
+
+      // Signed-in visitors can still browse the home page like anyone
+      // else — we just reflect their session in the nav (user chip) and
+      // let them choose "Dashboard" from the nav when they want it,
+      // instead of yanking them off this page every time they land here.
+      sb.auth.getSession().then(function(res){
+        if (res.data.session) {
+          renderSignedIn(res.data.session.user);
+        }
+      });
+
+      sb.auth.onAuthStateChange(function(event, session){
+        if (session) {
+          renderSignedIn(session.user);
+        } else {
+          renderSignedOut();
+        }
+      });
+
+      signOutBtn.addEventListener('click', function(){
+        sb.auth.signOut().then(function(){ renderSignedOut(); });
+      });
+    })();
+  </script>
+
+  <script>
+    (function(){
+      var STRINGS = {
+        en: {
+          nav_home: "Home", nav_explore: "Explore Tools", nav_creators: "Creators",
+          nav_docs: "Docs", nav_roadmap: "Roadmap",
+          nav_signin: "Login", nav_signout: "Sign out",
+          drawer_lang: "LANGUAGE",
+          hero_title: "Build better AI workflows.",
+          hero_sub: "One workspace for every AI tool you need.",
+          hero_cta: "Explore Tools",
+          home_products_eyebrow: "WHAT'S INSIDE", home_products_h2: "Three tools, live today",
+          home_products_sub: "Jump straight in, no setup beyond your own API key.",
+          explore_cta: "Explore all tools",
+          tools_eyebrow: "ALL YOUR AI TOOLS, ONE WORKSPACE",
+          tools_title: "Explore Tools",
+          tools_sub: "Pick what you need, launch it, and move on. New tools ship here first.",
+          products_eyebrow: "PRODUCTS", products_h2: "Every tool, equal footing",
+          products_sub: "No product here is the \"main\" one. Pick what you need, launch it, and move on.",
+          search_placeholder: "Search products…",
+          filter_all: "All", filter_ai: "AI", filter_developer: "Developer", filter_utilities: "Utilities",
+          auth_title: "Sign in to Arken",
+          auth_sub: "One account for every tool: Compare, Chat, Code Check.",
+          auth_github: "Continue with GitHub", auth_google: "Continue with Google",
+          auth_or: "or", auth_send_link: "Send link",
+          dash_title: "Dashboard", dash_welcome: "Welcome back", dash_role: "Role",
+          dash_go_tools: "Browse tools", dash_signout: "Sign out",
+          footer_privacy: "Privacy Policy", footer_terms: "Terms of Service", footer_cookies: "Cookie Policy"
+        },
+        ar: {
+          nav_home: "الرئيسية", nav_explore: "استكشف الأدوات", nav_creators: "المبدعون",
+          nav_docs: "الوثائق", nav_roadmap: "خارطة الطريق",
+          nav_signin: "دخول", nav_signout: "تسجيل الخروج",
+          drawer_lang: "اللغة",
+          hero_title: "ابنِ سير عمل أفضل بالذكاء الاصطناعي.",
+          hero_sub: "مكان واحد لكل أدوات الذكاء الاصطناعي اللي محتاجها.",
+          hero_cta: "استكشف الأدوات",
+          home_products_eyebrow: "إيه اللي متاح", home_products_h2: "٣ أدوات شغالة دلوقتي",
+          home_products_sub: "ابدأ على طول، مفيش إعداد غير مفتاح الـ API بتاعك.",
+          explore_cta: "استكشف كل الأدوات",
+          tools_eyebrow: "كل أدوات الذكاء الاصطناعي بتاعتك، في مكان واحد",
+          tools_title: "استكشف الأدوات",
+          tools_sub: "اختر ما تحتاجه، شغّله، وتابع. الأدوات الجديدة تظهر هنا أولًا.",
+          products_eyebrow: "المنتجات", products_h2: "كل أداة على قدم المساواة",
+          products_sub: "لا توجد أداة \"رئيسية\" هنا. اختر ما تحتاجه، شغّله، وتابع.",
+          search_placeholder: "ابحث في المنتجات…",
+          filter_all: "الكل", filter_ai: "ذكاء اصطناعي", filter_developer: "مطورين", filter_utilities: "أدوات مساعدة",
+          auth_title: "تسجيل الدخول إلى آركن",
+          auth_sub: "حساب واحد لكل الأدوات: Compare وChat وCode Check.",
+          auth_github: "المتابعة عبر GitHub", auth_google: "المتابعة عبر Google",
+          auth_or: "أو", auth_send_link: "إرسال الرابط",
+          dash_title: "لوحة التحكم", dash_welcome: "مرحبًا بعودتك", dash_role: "الدور",
+          dash_go_tools: "تصفح الأدوات", dash_signout: "تسجيل الخروج",
+          footer_privacy: "سياسة الخصوصية", footer_terms: "شروط الخدمة", footer_cookies: "سياسة الكوكيز"
+        }
+      };
+
+      function applyLang(lang){
+        var dict = STRINGS[lang] || STRINGS.en;
+        document.documentElement.setAttribute('lang', lang);
+        document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        document.querySelectorAll('[data-i18n]').forEach(function(el){
+          var key = el.getAttribute('data-i18n');
+          if (dict[key]) el.textContent = dict[key];
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el){
+          var key = el.getAttribute('data-i18n-placeholder');
+          if (dict[key]) el.setAttribute('placeholder', dict[key]);
+        });
+        var toggleLabel = document.getElementById('lang-toggle-label');
+        if (toggleLabel) toggleLabel.textContent = lang === 'ar' ? 'العربية' : 'English';
+        try { localStorage.setItem('arken_lang', lang); } catch(e){}
+      }
+
+      var saved = 'en';
+      try { saved = localStorage.getItem('arken_lang') || 'en'; } catch(e){}
+      applyLang(saved);
+
+      var toggleBtn = document.getElementById('lang-toggle');
+      if (toggleBtn){
+        toggleBtn.addEventListener('click', function(){
+          var current = document.documentElement.getAttribute('lang') === 'ar' ? 'ar' : 'en';
+          applyLang(current === 'ar' ? 'en' : 'ar');
+        });
+      }
+    })();
+  </script>
+
+</body>
+</html>
