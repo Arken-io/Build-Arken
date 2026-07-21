@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildArken Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D;
+    --bg-raised: #111318;
+    --bg-raised-hover: #15181E;
+    --border: #1E2128;
+    --border-soft: #191C22;
+    --text-1: #EDEEF1;
+    --text-2: #9498A3;
+    --text-3: #5A5E68;
+    --accent: #45E0C6;
+    --accent-dim: #45E0C633;
+    --accent-ink: #06110F;
+    --radius-s: 8px;
+    --radius-m: 12px;
+    --radius-l: 20px;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --container: 1180px;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  html{ overflow-x: hidden; max-width: 100%; }
+  body{
+    background: var(--bg);
+    color: var(--text-1);
+    font-family: var(--font-display);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a{ color: inherit; text-decoration: none; }
+  button{ font-family: inherit; cursor: pointer; }
+  html[dir="rtl"] body{ text-align: right; }
+  html[dir="rtl"] .nav .wrap{ direction: rtl; }
+
+  .wrap{ max-width: var(--container); margin: 0 auto; padding: 0 32px; }
+
+  .nav{
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,11,13,0.72);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav .wrap{ height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+  .logo{ display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+  .nav-links{ display: flex; align-items: center; gap: 28px; font-size: 14px; color: var(--text-2); flex: 1; justify-content: center; }
+  .nav-links a{ transition: color 0.15s ease; }
+  .nav-links a:hover{ color: var(--text-1); }
+  .nav-right{ display: flex; align-items: center; gap: 14px; }
+  .lang-toggle{ display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em; color: var(--text-2); border: 1px solid var(--border); border-radius: 999px; height: 32px; padding: 0 13px; background: var(--bg-raised); transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease; }
+  .lang-toggle:hover{ color: var(--text-1); background: var(--bg-raised-hover); border-color: #2A2E37; }
+
+  .btn{ display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 9px 18px; border-radius: 10px; border: 1px solid transparent; transition: transform 0.15s cubic-bezier(.2,.8,.2,1), box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease; white-space: nowrap; }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background: linear-gradient(180deg, #52E6CE, var(--accent)); color: var(--accent-ink); box-shadow: 0 1px 0 rgba(255,255,255,0.25) inset, 0 6px 16px -6px rgba(69,224,198,0.55); }
+  .btn-primary:hover{ box-shadow: 0 1px 0 rgba(255,255,255,0.3) inset, 0 10px 24px -8px rgba(69,224,198,0.7); transform: translateY(-1px); }
+  .btn-ghost{ background: var(--bg-raised); color: var(--text-1); border-color: var(--border); }
+  .btn-ghost:hover{ background: var(--bg-raised-hover); border-color: #2A2E37; transform: translateY(-1px); }
+  .btn-sm{ padding: 7px 14px; font-size: 13px; border-radius: 9px; }
+
+  main{ padding: 64px 0 96px; }
+
+  .dash-header{ margin-bottom: 40px; }
+  .dash-eyebrow{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    background: var(--accent-dim);
+    border: 1px solid #45E0C64d;
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .dash-eyebrow::before{
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .dash-header h1{ font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -0.02em; }
+  .dash-header p{ color: var(--text-2); margin-top: 8px; font-size: 15px; }
+
+  .dash-grid{ display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: stretch; }
+  @media (max-width: 760px){ .dash-grid{ grid-template-columns: 1fr; } }
+
+  .card{ background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 28px; }
+  .card h2{ font-size: 15px; font-weight: 700; margin-bottom: 18px; }
+
+  .profile-row{ display: flex; align-items: center; gap: 16px; margin-bottom: 22px; }
+  .profile-avatar{
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent-dim); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 20px; flex-shrink: 0;
+  }
+  .profile-name{ font-size: 17px; font-weight: 700; }
+  .profile-email{ font-size: 13px; color: var(--text-2); }
+
+  .field-row{ display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px solid var(--border-soft); font-size: 14px; }
+  .field-row:first-of-type{ border-top: none; }
+  .field-label{ color: var(--text-2); }
+  .role-badge{
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.05em;
+    background: var(--accent-dim); color: var(--accent);
+    padding: 4px 10px; border-radius: 999px; text-transform: uppercase;
+  }
+
+  /* Single, confident path forward — replaces what used to be four links
+     that all pointed at the same place. */
+  .card-cta{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(160deg, var(--bg-raised), var(--bg-raised) 60%, var(--accent-dim));
+    transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+  }
+  .card-cta:hover{ border-color: var(--accent); transform: translateY(-2px); }
+  .card-cta-eyebrow{ font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; color: var(--text-3); text-transform: uppercase; }
+  .card-cta-title{ font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
+  .card-cta-arrow{
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink);
+    margin-top: 6px; transition: transform 0.15s ease;
+  }
+  .card-cta:hover .card-cta-arrow{ transform: translateX(4px); }
+
+  .loading-state{ text-align: center; padding: 120px 0; color: var(--text-2); font-family: var(--font-mono); font-size: 13px; }
+</style>
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="wrap">
+      <a class="logo" href="index.html">BuildArken</a>
+      <div class="nav-links">
+        <a href="index.html" data-i18n="nav_home">Home</a>
+        <a href="tools.html" data-i18n="nav_tools">Tools</a>
+        <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
+      </div>
+      <div class="nav-right">
+        <button type="button" class="lang-toggle" id="lang-toggle" aria-label="Switch language">EN</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="signout-btn" data-i18n="nav_signout">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="loading" class="loading-state">Loading…</div>
+
+  <main id="dashboard-content" style="display:none;">
+    <div class="wrap">
+      <div class="dash-header">
+        <span class="dash-eyebrow" data-i18n="dash_title">DASHBOARD</span>
+        <h1><span data-i18n="dash_welcome">Welcome back</span>, <span id="dash-first-name">there</span></h1>
+        <p data-i18n="tools_sub">Pick what you need, launch it, and move on.</p>
+      </div>
+
+      <div class="dash-grid">
+        <div class="card">
+          <h2>Profile</h2>
+          <div class="profile-row">
+            <div class="profile-avatar" id="profile-avatar">?</div>
+            <div>
+              <div class="profile-name" id="profile-name"></div>
+              <div class="profile-email" id="profile-email"></div>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label" data-i18n="dash_role">Role</span>
+            <span class="role-badge" id="profile-role">user</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Member since</span>
+            <span id="profile-created"></span>
+          </div>
+        </div>
+
+        <a href="tools.html" class="card card-cta">
+          <span class="card-cta-eyebrow" data-i18n="dash_go_tools">Browse tools</span>
+          <span class="card-cta-title">Compare, Chat, Code Check</span>
+          <span class="card-cta-arrow" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function(){
+      var SUPABASE_URL = "https://zwjntvrwepoqgrioejqa.supabase.co";
+      var SUPABASE_ANON_KEY = "sb_publishable_7SwXIR-7gPwuOg6nruekeQ_FT4dGgNp";
+      var COOKIE_DOMAIN = ""; // e.g. ".buildarken.com" in production — keep in sync with index.html/tools.html
+
+      // Same cookie-backed storage adapter as index.html / tools.html so a
+      // session started on either page is recognized here too.
+      function getCookie(name){
+        var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[2]) : null;
+      }
+      function setCookie(name, value, days){
+        var expires = new Date(Date.now() + days * 864e5).toUTCString();
+        var domainPart = COOKIE_DOMAIN ? '; domain=' + COOKIE_DOMAIN : '';
+        document.cookie = name + '=' + encodeURIComponent(value) +
+          '; expires=' + expires + '; path=/' + domainPart + '; SameSite=Lax; Secure';
+      }
+      function removeCookie(name){
+        var domainPart = COOKIE_DOMAIN ? '; domain=' + COOKIE_DOMAIN : '';
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/' + domainPart;
+      }
+      var cookieStorage = {
+        getItem: function(key){ return getCookie(key); },
+        setItem: function(key, value){ setCookie(key, value, 30); },
+        removeItem: function(key){ removeCookie(key); },
+      };
+
+      if (!window.supabase) {
+        console.error('Supabase JS failed to load — check the CDN <script> tag.');
+        return;
+      }
+
+      var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          storage: cookieStorage,
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      });
+
+      var loadingEl = document.getElementById('loading');
+      var contentEl = document.getElementById('dashboard-content');
+
+      function fillDashboard(user, profile){
+        var displayName = (profile && profile.full_name) ||
+          (user.user_metadata && (user.user_metadata.full_name || user.user_metadata.name)) ||
+          user.email || 'there';
+        var firstName = displayName.split(' ')[0];
+
+        document.getElementById('dash-first-name').textContent = firstName;
+        document.getElementById('profile-name').textContent = displayName;
+        document.getElementById('profile-email').textContent = user.email || '';
+        document.getElementById('profile-avatar').textContent = firstName.charAt(0).toUpperCase();
+        document.getElementById('profile-role').textContent = (profile && profile.role) || 'user';
+
+        var createdAt = (profile && profile.created_at) || user.created_at;
+        if (createdAt) {
+          try {
+            document.getElementById('profile-created').textContent =
+              new Date(createdAt).toLocaleDateString();
+          } catch(e){}
+        }
+
+        loadingEl.style.display = 'none';
+        contentEl.style.display = '';
+      }
+
+      async function loadProfile(user){
+        // The profiles row is created automatically by a DB trigger on
+        // first sign-in (see profiles.sql). We just read it here — if it
+        // hasn't landed yet (rare race on the very first login) we fall
+        // back to the auth user object so the page still renders.
+        try {
+          var res = await sb.from('profiles').select('*').eq('id', user.id).single();
+          fillDashboard(user, res.data);
+        } catch (e) {
+          fillDashboard(user, null);
+        }
+      }
+
+      sb.auth.getSession().then(function(res){
+        var session = res.data.session;
+        if (!session) {
+          window.location.replace('index.html');
+          return;
+        }
+        loadProfile(session.user);
+      });
+
+      sb.auth.onAuthStateChange(function(event, session){
+        if (!session) {
+          window.location.replace('index.html');
+        }
+      });
+
+      document.getElementById('signout-btn').addEventListener('click', function(){
+        sb.auth.signOut().then(function(){
+          window.location.replace('index.html');
+        });
+      });
+    })();
+  </script>
+
+  <script>
+    (function(){
+      var STRINGS = {
+        en: {
+          nav_home: "Home", nav_tools: "Tools", nav_dashboard: "Dashboard", nav_signout: "Sign out",
+          dash_title: "DASHBOARD", dash_welcome: "Welcome back", dash_role: "Role",
+          dash_go_tools: "Browse tools", tools_sub: "Pick what you need, launch it, and move on."
+        },
+        ar: {
+          nav_home: "الرئيسية", nav_tools: "الأدوات", nav_dashboard: "لوحة التحكم", nav_signout: "تسجيل الخروج",
+          dash_title: "لوحة التحكم", dash_welcome: "مرحبًا بعودتك", dash_role: "الدور",
+          dash_go_tools: "تصفح الأدوات", tools_sub: "اختر ما تحتاجه، شغّله، وتابع."
+        }
+      };
+
+      function applyLang(lang){
+        var dict = STRINGS[lang] || STRINGS.en;
+        document.documentElement.setAttribute('lang', lang);
+        document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        document.querySelectorAll('[data-i18n]').forEach(function(el){
+          var key = el.getAttribute('data-i18n');
+          if (dict[key]) el.textContent = dict[key];
+        });
+        var toggle = document.getElementById('lang-toggle');
+        if (toggle) toggle.textContent = lang === 'ar' ? 'EN' : 'AR';
+        try { localStorage.setItem('arken_lang', lang); } catch(e){}
+      }
+
+      var saved = 'en';
+      try { saved = localStorage.getItem('arken_lang') || 'en'; } catch(e){}
+      applyLang(saved);
+
+      var toggleBtn = document.getElementById('lang-toggle');
+      if (toggleBtn){
+        toggleBtn.addEventListener('click', function(){
+          var current = document.documentElement.getAttribute('lang') === 'ar' ? 'ar' : 'en';
+          applyLang(current === 'ar' ? 'en' : 'ar');
+        });
+      }
+    })();
+  </script>
+
+</body>
+</html>
