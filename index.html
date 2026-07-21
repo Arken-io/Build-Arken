@@ -276,14 +276,50 @@
 
   .drawer-divider{ height: 1px; background: var(--border-soft); margin: 16px 0; }
 
-  .drawer-lang{ display: flex; align-items: center; justify-content: space-between; padding: 4px 10px; }
-  .drawer-lang-label{ font-size: 12px; color: var(--text-3); font-family: var(--font-mono); letter-spacing: 0.04em; }
-  .drawer-lang-btn{
-    display: flex; align-items: center; gap: 6px;
-    background: none; border: none; color: var(--text-1);
-    font-size: 14px; font-weight: 600; padding: 4px 0;
+  .drawer-lang{ padding: 4px 10px; }
+  .drawer-lang-label{ font-size: 12px; color: var(--text-3); font-family: var(--font-mono); letter-spacing: 0.04em; margin-bottom: 10px; display: block; }
+
+  .lang-select{ position: relative; }
+  .lang-select-btn{
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    width: 100%;
+    background: var(--bg-raised); border: 1px solid var(--border); color: var(--text-1);
+    font-size: 14px; font-weight: 600; padding: 9px 12px; border-radius: var(--radius-s);
+    transition: border-color 0.15s ease, background 0.15s ease;
   }
-  .drawer-lang-btn svg{ color: var(--text-3); }
+  .lang-select-btn:hover{ border-color: #2A2E37; background: var(--bg-raised-hover); }
+  .lang-select-btn svg{ color: var(--text-3); flex-shrink: 0; transition: transform 0.15s ease; }
+  .lang-select.open .lang-select-btn svg{ transform: rotate(180deg); }
+
+  .lang-select-list{
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0; right: 0;
+    z-index: 5;
+    background: #14161B;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    padding: 4px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.5);
+    transition: max-height 0.18s ease, opacity 0.15s ease;
+  }
+  .lang-select.open .lang-select-list{ max-height: 280px; opacity: 1; pointer-events: auto; }
+
+  .lang-select-list li{
+    padding: 9px 10px;
+    border-radius: 6px;
+    font-size: 13.5px;
+    color: var(--text-2);
+    display: flex; align-items: center; justify-content: space-between;
+    cursor: pointer;
+  }
+  .lang-select-list li:hover{ background: var(--bg-raised-hover); color: var(--text-1); }
+  .lang-select-list li[aria-selected="true"]{ color: var(--accent); font-weight: 600; }
+  .lang-select-list li[aria-selected="true"]::after{ content: '✓'; font-size: 12px; }
 
   .drawer-social{ display: flex; flex-direction: column; gap: 2px; }
   .drawer-social a{
@@ -558,10 +594,20 @@
 
     <div class="drawer-lang">
       <span class="drawer-lang-label" data-i18n="drawer_lang">LANGUAGE</span>
-      <button type="button" class="drawer-lang-btn" id="lang-toggle" aria-label="Switch language">
-        <span id="lang-toggle-label">English</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
+      <div class="lang-select" id="lang-select">
+        <button type="button" class="lang-select-btn" id="lang-select-btn" aria-haspopup="listbox" aria-expanded="false">
+          <span id="lang-select-label">English</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <ul class="lang-select-list" id="lang-select-list" role="listbox">
+          <li role="option" data-lang="en" aria-selected="true">English</li>
+          <li role="option" data-lang="ar">العربية</li>
+          <li role="option" data-lang="de">Deutsch</li>
+          <li role="option" data-lang="ru">Русский</li>
+          <li role="option" data-lang="es">Español</li>
+          <li role="option" data-lang="fr">Français</li>
+        </ul>
+      </div>
     </div>
 
     <div class="drawer-divider"></div>
@@ -619,10 +665,10 @@
             <span class="badge" data-status="alpha"><span class="dot"></span>ALPHA</span>
           </div>
           <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/></svg></div>
-          <h3>Compare</h3>
-          <p>Side-by-side comparisons across models, providers, and outputs.</p>
+          <h3 data-i18n="card1_title">Compare</h3>
+          <p data-i18n="card1_desc">Side-by-side comparisons across models, providers, and outputs.</p>
           <div class="card-actions">
-            <a class="btn btn-primary btn-sm" href="https://ai-model-compare-boru.vercel.app/compare">Open</a>
+            <a class="btn btn-primary btn-sm" href="https://ai-model-compare-boru.vercel.app/compare" data-i18n="card_open">Open</a>
           </div>
         </article>
 
@@ -631,10 +677,10 @@
             <span class="badge" data-status="alpha"><span class="dot"></span>ALPHA</span>
           </div>
           <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-4.2 3.5V15.5H4v-10z"/></svg></div>
-          <h3>Chat</h3>
-          <p>A fast, distraction-free interface for any model.</p>
+          <h3 data-i18n="card2_title">Chat</h3>
+          <p data-i18n="card2_desc">A fast, distraction-free interface for any model.</p>
           <div class="card-actions">
-            <a class="btn btn-primary btn-sm" href="chat.html">Open</a>
+            <a class="btn btn-primary btn-sm" href="chat.html" data-i18n="card_open">Open</a>
           </div>
         </article>
 
@@ -643,10 +689,10 @@
             <span class="badge" data-status="alpha"><span class="dot"></span>ALPHA</span>
           </div>
           <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 6 3.5 12l5 6"/><path d="M15.5 6l5 6-5 6"/><path d="M10 13l1.7 1.7L14.5 11"/></svg></div>
-          <h3>Code Check</h3>
-          <p>Paste code, get an instant static review: bugs, slow spots, duplication, and a score out of 10.</p>
+          <h3 data-i18n="card3_title">Code Check</h3>
+          <p data-i18n="card3_desc">Paste code, get an instant static review: bugs, slow spots, duplication, and a score out of 10.</p>
           <div class="card-actions">
-            <a class="btn btn-primary btn-sm" href="https://code-check-nine.vercel.app/">Open</a>
+            <a class="btn btn-primary btn-sm" href="https://code-check-nine.vercel.app/" data-i18n="card_open">Open</a>
           </div>
         </article>
       </div>
@@ -899,6 +945,11 @@
 
   <script>
     (function(){
+      // LANG_NAMES: each language's own name, shown in the dropdown and as
+      // the trigger label once selected — never translated.
+      var LANG_NAMES = { en: "English", ar: "العربية", de: "Deutsch", ru: "Русский", es: "Español", fr: "Français" };
+      var RTL_LANGS = ["ar"];
+
       var STRINGS = {
         en: {
           nav_home: "Home", nav_explore: "Explore Tools", nav_creators: "Creators",
@@ -911,53 +962,127 @@
           home_products_eyebrow: "WHAT'S INSIDE", home_products_h2: "Three tools, live today",
           home_products_sub: "Jump straight in, no setup beyond your own API key.",
           explore_cta: "Explore all tools",
-          tools_eyebrow: "ALL YOUR AI TOOLS, ONE WORKSPACE",
-          tools_title: "Explore Tools",
-          tools_sub: "Pick what you need, launch it, and move on. New tools ship here first.",
-          products_eyebrow: "PRODUCTS", products_h2: "Every tool, equal footing",
-          products_sub: "No product here is the \"main\" one. Pick what you need, launch it, and move on.",
-          search_placeholder: "Search products…",
-          filter_all: "All", filter_ai: "AI", filter_developer: "Developer", filter_utilities: "Utilities",
+          card1_title: "Compare", card1_desc: "Side-by-side comparisons across models, providers, and outputs.",
+          card2_title: "Chat", card2_desc: "A fast, distraction-free interface for any model.",
+          card3_title: "Code Check", card3_desc: "Paste code, get an instant static review: bugs, slow spots, duplication, and a score out of 10.",
+          card_open: "Open",
           auth_title: "Sign in to Arken",
           auth_sub: "One account for every tool: Compare, Chat, Code Check.",
           auth_github: "Continue with GitHub", auth_google: "Continue with Google",
           auth_or: "or", auth_send_link: "Send link",
-          dash_title: "Dashboard", dash_welcome: "Welcome back", dash_role: "Role",
-          dash_go_tools: "Browse tools", dash_signout: "Sign out",
           footer_privacy: "Privacy Policy", footer_terms: "Terms of Service", footer_cookies: "Cookie Policy"
         },
         ar: {
-          nav_home: "الرئيسية", nav_explore: "استكشف الأدوات", nav_creators: "المبدعون",
+          nav_home: "الرئيسية", nav_explore: "استكشاف الأدوات", nav_creators: "المبدعون",
           nav_docs: "الوثائق", nav_roadmap: "خارطة الطريق",
-          nav_signin: "دخول", nav_signout: "تسجيل الخروج",
+          nav_signin: "تسجيل الدخول", nav_signout: "تسجيل الخروج",
           drawer_lang: "اللغة",
           hero_title: "ابنِ سير عمل أفضل بالذكاء الاصطناعي.",
-          hero_sub: "مكان واحد لكل أدوات الذكاء الاصطناعي اللي محتاجها.",
-          hero_cta: "استكشف الأدوات",
-          home_products_eyebrow: "إيه اللي متاح", home_products_h2: "٣ أدوات شغالة دلوقتي",
-          home_products_sub: "ابدأ على طول، مفيش إعداد غير مفتاح الـ API بتاعك.",
-          explore_cta: "استكشف كل الأدوات",
-          tools_eyebrow: "كل أدوات الذكاء الاصطناعي بتاعتك، في مكان واحد",
-          tools_title: "استكشف الأدوات",
-          tools_sub: "اختر ما تحتاجه، شغّله، وتابع. الأدوات الجديدة تظهر هنا أولًا.",
-          products_eyebrow: "المنتجات", products_h2: "كل أداة على قدم المساواة",
-          products_sub: "لا توجد أداة \"رئيسية\" هنا. اختر ما تحتاجه، شغّله، وتابع.",
-          search_placeholder: "ابحث في المنتجات…",
-          filter_all: "الكل", filter_ai: "ذكاء اصطناعي", filter_developer: "مطورين", filter_utilities: "أدوات مساعدة",
+          hero_sub: "مساحة عمل واحدة لجميع أدوات الذكاء الاصطناعي التي تحتاج إليها.",
+          hero_cta: "استكشاف الأدوات",
+          home_products_eyebrow: "ما يحتويه الموقع", home_products_h2: "ثلاث أدوات متاحة الآن",
+          home_products_sub: "ابدأ فورًا، دون الحاجة إلى أي إعداد سوى مفتاح واجهة برمجة التطبيقات الخاص بك.",
+          explore_cta: "استكشاف جميع الأدوات",
+          card1_title: "المقارنة", card1_desc: "مقارنات جنبًا إلى جنب بين النماذج ومزوّدي الخدمة والمخرجات.",
+          card2_title: "الدردشة", card2_desc: "واجهة سريعة وخالية من عوامل التشتيت لأي نموذج.",
+          card3_title: "فحص الكود", card3_desc: "الصق الكود واحصل على مراجعة فورية: الأخطاء، ونقاط الإبطاء، والتكرار، وتقييم من عشر درجات.",
+          card_open: "فتح",
           auth_title: "تسجيل الدخول إلى آركن",
-          auth_sub: "حساب واحد لكل الأدوات: Compare وChat وCode Check.",
+          auth_sub: "حساب واحد لجميع الأدوات: Compare وChat وCode Check.",
           auth_github: "المتابعة عبر GitHub", auth_google: "المتابعة عبر Google",
           auth_or: "أو", auth_send_link: "إرسال الرابط",
-          dash_title: "لوحة التحكم", dash_welcome: "مرحبًا بعودتك", dash_role: "الدور",
-          dash_go_tools: "تصفح الأدوات", dash_signout: "تسجيل الخروج",
-          footer_privacy: "سياسة الخصوصية", footer_terms: "شروط الخدمة", footer_cookies: "سياسة الكوكيز"
+          footer_privacy: "سياسة الخصوصية", footer_terms: "شروط الخدمة", footer_cookies: "سياسة ملفات تعريف الارتباط"
+        },
+        de: {
+          nav_home: "Startseite", nav_explore: "Tools entdecken", nav_creators: "Creators",
+          nav_docs: "Dokumentation", nav_roadmap: "Roadmap",
+          nav_signin: "Anmelden", nav_signout: "Abmelden",
+          drawer_lang: "SPRACHE",
+          hero_title: "Bessere KI-Workflows entwickeln.",
+          hero_sub: "Ein Arbeitsbereich für jedes KI-Tool, das du brauchst.",
+          hero_cta: "Tools entdecken",
+          home_products_eyebrow: "WAS DICH ERWARTET", home_products_h2: "Drei Tools, ab sofort verfügbar",
+          home_products_sub: "Direkt loslegen – außer deinem eigenen API-Key ist nichts weiter nötig.",
+          explore_cta: "Alle Tools entdecken",
+          card1_title: "Compare", card1_desc: "Direkte Vergleiche zwischen Modellen, Anbietern und Ergebnissen.",
+          card2_title: "Chat", card2_desc: "Eine schnelle, ablenkungsfreie Oberfläche für jedes Modell.",
+          card3_title: "Code Check", card3_desc: "Code einfügen und sofort eine statische Prüfung erhalten: Fehler, langsame Stellen, Duplikate und eine Bewertung von zehn.",
+          card_open: "Öffnen",
+          auth_title: "Bei Arken anmelden",
+          auth_sub: "Ein Konto für jedes Tool: Compare, Chat, Code Check.",
+          auth_github: "Weiter mit GitHub", auth_google: "Weiter mit Google",
+          auth_or: "oder", auth_send_link: "Link senden",
+          footer_privacy: "Datenschutz", footer_terms: "Nutzungsbedingungen", footer_cookies: "Cookie-Richtlinie"
+        },
+        ru: {
+          nav_home: "Главная", nav_explore: "Все инструменты", nav_creators: "Авторам",
+          nav_docs: "Документация", nav_roadmap: "План развития",
+          nav_signin: "Войти", nav_signout: "Выйти",
+          drawer_lang: "ЯЗЫК",
+          hero_title: "Создавайте более эффективные ИИ-процессы.",
+          hero_sub: "Единое пространство для всех нужных вам инструментов ИИ.",
+          hero_cta: "Все инструменты",
+          home_products_eyebrow: "ЧТО ВНУТРИ", home_products_h2: "Три инструмента уже доступны",
+          home_products_sub: "Начните сразу — нужен только ваш собственный API-ключ.",
+          explore_cta: "Все инструменты",
+          card1_title: "Compare", card1_desc: "Сравнение моделей, провайдеров и результатов бок о бок.",
+          card2_title: "Chat", card2_desc: "Быстрый интерфейс без отвлекающих элементов для любой модели.",
+          card3_title: "Code Check", card3_desc: "Вставьте код и мгновенно получите статический анализ: ошибки, узкие места, дублирование и оценку по десятибалльной шкале.",
+          card_open: "Открыть",
+          auth_title: "Вход в Arken",
+          auth_sub: "Один аккаунт для всех инструментов: Compare, Chat, Code Check.",
+          auth_github: "Продолжить через GitHub", auth_google: "Продолжить через Google",
+          auth_or: "или", auth_send_link: "Отправить ссылку",
+          footer_privacy: "Политика конфиденциальности", footer_terms: "Условия использования", footer_cookies: "Политика использования файлов cookie"
+        },
+        es: {
+          nav_home: "Inicio", nav_explore: "Explorar herramientas", nav_creators: "Creadores",
+          nav_docs: "Documentación", nav_roadmap: "Hoja de ruta",
+          nav_signin: "Iniciar sesión", nav_signout: "Cerrar sesión",
+          drawer_lang: "IDIOMA",
+          hero_title: "Crea mejores flujos de trabajo con IA.",
+          hero_sub: "Un solo espacio para todas las herramientas de IA que necesitas.",
+          hero_cta: "Explorar herramientas",
+          home_products_eyebrow: "QUÉ INCLUYE", home_products_h2: "Tres herramientas ya disponibles",
+          home_products_sub: "Empieza de inmediato, solo necesitas tu propia clave de API.",
+          explore_cta: "Ver todas las herramientas",
+          card1_title: "Compare", card1_desc: "Comparaciones lado a lado entre modelos, proveedores y resultados.",
+          card2_title: "Chat", card2_desc: "Una interfaz rápida y sin distracciones para cualquier modelo.",
+          card3_title: "Code Check", card3_desc: "Pega tu código y recibe una revisión estática instantánea: errores, puntos lentos, duplicaciones y una puntuación sobre diez.",
+          card_open: "Abrir",
+          auth_title: "Inicia sesión en Arken",
+          auth_sub: "Una sola cuenta para todas las herramientas: Compare, Chat, Code Check.",
+          auth_github: "Continuar con GitHub", auth_google: "Continuar con Google",
+          auth_or: "o", auth_send_link: "Enviar enlace",
+          footer_privacy: "Política de privacidad", footer_terms: "Términos del servicio", footer_cookies: "Política de cookies"
+        },
+        fr: {
+          nav_home: "Accueil", nav_explore: "Explorer les outils", nav_creators: "Créateurs",
+          nav_docs: "Documentation", nav_roadmap: "Feuille de route",
+          nav_signin: "Connexion", nav_signout: "Déconnexion",
+          drawer_lang: "LANGUE",
+          hero_title: "Créez de meilleurs workflows IA.",
+          hero_sub: "Un seul espace pour tous les outils IA dont vous avez besoin.",
+          hero_cta: "Explorer les outils",
+          home_products_eyebrow: "AU PROGRAMME", home_products_h2: "Trois outils déjà disponibles",
+          home_products_sub: "Commencez immédiatement, aucune configuration requise à part votre propre clé API.",
+          explore_cta: "Voir tous les outils",
+          card1_title: "Compare", card1_desc: "Comparaisons côte à côte entre modèles, fournisseurs et résultats.",
+          card2_title: "Chat", card2_desc: "Une interface rapide et sans distraction pour n'importe quel modèle.",
+          card3_title: "Code Check", card3_desc: "Collez votre code et obtenez une revue statique instantanée : bugs, points lents, duplications et une note sur dix.",
+          card_open: "Ouvrir",
+          auth_title: "Connexion à Arken",
+          auth_sub: "Un seul compte pour tous les outils : Compare, Chat, Code Check.",
+          auth_github: "Continuer avec GitHub", auth_google: "Continuer avec Google",
+          auth_or: "ou", auth_send_link: "Envoyer le lien",
+          footer_privacy: "Politique de confidentialité", footer_terms: "Conditions d'utilisation", footer_cookies: "Politique de cookies"
         }
       };
 
       function applyLang(lang){
         var dict = STRINGS[lang] || STRINGS.en;
         document.documentElement.setAttribute('lang', lang);
-        document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+        document.documentElement.setAttribute('dir', RTL_LANGS.indexOf(lang) > -1 ? 'rtl' : 'ltr');
         document.querySelectorAll('[data-i18n]').forEach(function(el){
           var key = el.getAttribute('data-i18n');
           if (dict[key]) el.textContent = dict[key];
@@ -966,8 +1091,11 @@
           var key = el.getAttribute('data-i18n-placeholder');
           if (dict[key]) el.setAttribute('placeholder', dict[key]);
         });
-        var toggleLabel = document.getElementById('lang-toggle-label');
-        if (toggleLabel) toggleLabel.textContent = lang === 'ar' ? 'العربية' : 'English';
+        var label = document.getElementById('lang-select-label');
+        if (label) label.textContent = LANG_NAMES[lang] || LANG_NAMES.en;
+        document.querySelectorAll('#lang-select-list li').forEach(function(li){
+          li.setAttribute('aria-selected', li.getAttribute('data-lang') === lang ? 'true' : 'false');
+        });
         try { localStorage.setItem('arken_lang', lang); } catch(e){}
       }
 
@@ -975,11 +1103,36 @@
       try { saved = localStorage.getItem('arken_lang') || 'en'; } catch(e){}
       applyLang(saved);
 
-      var toggleBtn = document.getElementById('lang-toggle');
-      if (toggleBtn){
-        toggleBtn.addEventListener('click', function(){
-          var current = document.documentElement.getAttribute('lang') === 'ar' ? 'ar' : 'en';
-          applyLang(current === 'ar' ? 'en' : 'ar');
+      // ---- language dropdown: click to reveal the list, pick one -------
+      var langSelect = document.getElementById('lang-select');
+      var langSelectBtn = document.getElementById('lang-select-btn');
+      var langSelectList = document.getElementById('lang-select-list');
+
+      function openLangList(){
+        langSelect.classList.add('open');
+        langSelectBtn.setAttribute('aria-expanded', 'true');
+      }
+      function closeLangList(){
+        langSelect.classList.remove('open');
+        langSelectBtn.setAttribute('aria-expanded', 'false');
+      }
+
+      if (langSelectBtn){
+        langSelectBtn.addEventListener('click', function(e){
+          e.stopPropagation();
+          langSelect.classList.contains('open') ? closeLangList() : openLangList();
+        });
+        langSelectList.querySelectorAll('li').forEach(function(li){
+          li.addEventListener('click', function(){
+            applyLang(li.getAttribute('data-lang'));
+            closeLangList();
+          });
+        });
+        document.addEventListener('click', function(e){
+          if (!langSelect.contains(e.target)) closeLangList();
+        });
+        document.addEventListener('keydown', function(e){
+          if (e.key === 'Escape') closeLangList();
         });
       }
     })();
