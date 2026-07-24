@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('arken_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Arken: Build better AI workflows</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -37,6 +38,25 @@
   }
 
   *{ box-sizing: border-box; margin:0; padding:0; }
+
+  [data-theme="light"]{
+    --bg: #FAFAFA;
+    --bg-raised: #FFFFFF;
+    --bg-raised-hover: #F2F3F5;
+    --border: #E3E5E9;
+    --border-soft: #ECEDF0;
+    --text-1: #14161B;
+    --text-2: #5B5F6B;
+    --text-3: #9599A3;
+    --accent: #0EA98C;
+    --accent-dim: #0EA98C1f;
+    --accent-ink: #FFFFFF;
+    --status-alpha: #C97C1B;
+    --status-beta: #2E6FE0;
+    --status-stable: #0EA98C;
+    --warn: #C97C1B;
+    --warn-dim: #C97C1B1f;
+  }
 
   html{ scroll-behavior: smooth; }
 
@@ -85,6 +105,12 @@
   }
 
   /* ---------- background layer ---------- */
+  [data-theme="light"] .bg-nebula,
+  [data-theme="light"] #space-bg,
+  [data-theme="light"] .bg-overlay{
+    display: none;
+  }
+
   .bg-nebula{
     position: fixed;
     inset: 0;
@@ -585,9 +611,9 @@
     <nav class="drawer-nav">
       <a href="index.html" data-i18n="nav_home">Home</a>
       <a href="tools.html" data-i18n="nav_explore">Explore Tools</a>
-      <a href="#" data-i18n="nav_creators">Creators</a>
-      <a href="#" data-i18n="nav_docs">Docs</a>
-      <a href="#" data-i18n="nav_roadmap">Roadmap</a>
+      <a href="creators.html" data-i18n="nav_creators">Creators</a>
+      <a href="docs.html" data-i18n="nav_docs">Docs</a>
+      <a href="roadmap.html" data-i18n="nav_roadmap">Roadmap</a>
     </nav>
 
     <div class="drawer-divider"></div>
@@ -630,9 +656,9 @@
     <div class="drawer-divider"></div>
 
     <div class="drawer-legal">
-      <a href="#" data-i18n="footer_privacy">Privacy Policy</a>
-      <a href="#" data-i18n="footer_terms">Terms of Service</a>
-      <a href="#" data-i18n="footer_cookies">Cookie Policy</a>
+      <a href="privacy.html" data-i18n="footer_privacy">Privacy Policy</a>
+      <a href="terms.html" data-i18n="footer_terms">Terms of Service</a>
+      <a href="cookies.html" data-i18n="footer_cookies">Cookie Policy</a>
     </div>
   </aside>
 
