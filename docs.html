@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('arken_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Docs — BuildArken</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D; --bg-raised: #111318; --border: #1E2128;
+    --text-1: #EDEEF1; --text-2: #9498A3; --text-3: #5A5E68;
+    --accent: #45E0C6; --accent-dim: #45E0C633; --accent-ink: #06110F;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  [data-theme="light"]{
+    --bg: #FAFAFA; --bg-raised: #FFFFFF; --border: #E3E5E9;
+    --text-1: #14161B; --text-2: #5B5F6B; --text-3: #9599A3;
+    --accent: #0EA98C; --accent-dim: #0EA98C1f; --accent-ink: #FFFFFF;
+  }
+  html, body{ height: 100%; }
+  body{ background: var(--bg); color: var(--text-1); font-family: var(--font-display); display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+  .card{ max-width: 420px; }
+  .icon{ width: 56px; height: 56px; border-radius: 16px; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+  h1{ font-size: 24px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; }
+  p{ color: var(--text-2); font-size: 14.5px; line-height: 1.6; margin-bottom: 24px; }
+  a{ display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(180deg, #52E6CE, var(--accent)); color: var(--accent-ink); font-weight: 600; font-size: 14px; padding: 10px 20px; border-radius: 10px; text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/></svg>
+    </div>
+    <h1>Docs are on the way</h1>
+    <p>We're writing proper documentation and an API guide — this page is a placeholder, not a finished doc site. In the meantime, the project's README on GitHub has the most up-to-date technical details.</p>
+    <a href="https://github.com/Arken-io" target="_blank" rel="noopener">View on GitHub</a>
+  </div>
+</body>
+</html>
