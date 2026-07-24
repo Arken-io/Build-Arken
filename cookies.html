@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('arken_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Cookie Policy — BuildArken</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D; --bg-raised: #111318; --border: #1E2128; --border-soft: #191C22;
+    --text-1: #EDEEF1; --text-2: #9498A3; --text-3: #5A5E68;
+    --accent: #45E0C6; --accent-dim: #45E0C633; --accent-ink: #06110F;
+    --radius-s: 8px; --radius-l: 20px;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  [data-theme="light"]{
+    --bg: #FAFAFA; --bg-raised: #FFFFFF; --border: #E3E5E9; --border-soft: #ECEDF0;
+    --text-1: #14161B; --text-2: #5B5F6B; --text-3: #9599A3;
+    --accent: #0EA98C; --accent-dim: #0EA98C1f; --accent-ink: #FFFFFF;
+  }
+  html{ height: 100%; overflow: hidden; }
+  body{ height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); color: var(--text-1); font-family: var(--font-display); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a{ color: var(--accent); text-decoration: none; }
+  a:hover{ text-decoration: underline; }
+  .wrap{ max-width: 760px; margin: 0 auto; padding: 0 32px; }
+  .nav{ position: sticky; top: 0; z-index: 50; background: rgba(10,11,13,0.72); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  [data-theme="light"] .nav{ background: rgba(250,250,250,0.78); }
+  .nav .wrap{ max-width: 1180px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+  .logo{ display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 16px; color: var(--text-1); }
+  .logo img{ border-radius: 6px; }
+  main{ padding: 56px 0 96px; }
+  .doc-header{ margin-bottom: 40px; }
+  .doc-header h1{ font-size: clamp(26px, 4vw, 34px); font-weight: 800; letter-spacing: -0.02em; }
+  .doc-header p{ color: var(--text-3); font-size: 13px; margin-top: 8px; font-family: var(--font-mono); }
+  .notice{ background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-s); padding: 14px 16px; font-size: 13px; color: var(--text-2); margin-bottom: 36px; }
+  section{ margin-bottom: 30px; }
+  h2{ font-size: 17px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.01em; }
+  p, li{ font-size: 14.5px; color: var(--text-2); margin-bottom: 10px; }
+  table{ width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13.5px; }
+  th, td{ text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-soft); color: var(--text-2); }
+  th{ color: var(--text-1); font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; font-family: var(--font-mono); }
+  strong{ color: var(--text-1); }
+  footer{ border-top: 1px solid var(--border-soft); padding: 30px 0; text-align: center; }
+  footer .wrap{ max-width: 1180px; }
+  footer a{ color: var(--text-2); font-size: 13px; margin: 0 10px; }
+</style>
+</head>
+<body>
+  <nav class="nav"><div class="wrap"><a class="logo" href="index.html"><img src="/apple-touch-icon.png" width="20" height="20" alt="">BuildArken</a></div></nav>
+
+  <main>
+    <div class="wrap">
+      <div class="doc-header">
+        <h1>Cookie Policy</h1>
+        <p>Last updated: July 2026</p>
+      </div>
+
+      <div class="notice">This is a standard template, not legal advice — review it with a lawyer before relying on it for a live product.</div>
+
+      <section>
+        <h2>1. What we use, and why</h2>
+        <p>We keep this deliberately small. Here's everything BuildArken stores in your browser:</p>
+        <table>
+          <tr><th>Name</th><th>Type</th><th>Purpose</th><th>Duration</th></tr>
+          <tr><td>Supabase session cookie</td><td>Cookie</td><td>Keeps you signed in, shared across BuildArken's tools (Compare, Chat, Code Check)</td><td>30 days</td></tr>
+          <tr><td>arken_lang</td><td>Local storage</td><td>Remembers your chosen language</td><td>Until cleared</td></tr>
+          <tr><td>arken_theme</td><td>Local storage</td><td>Remembers Dark/Light preference</td><td>Until cleared</td></tr>
+          <tr><td>Google Analytics (_ga, etc.)</td><td>Cookie</td><td>Aggregate, anonymized traffic statistics</td><td>Up to 2 years</td></tr>
+        </table>
+      </section>
+
+      <section>
+        <h2>2. Strictly necessary</h2>
+        <p>The session cookie is required for sign-in to work — without it, you'd be logged out on every page. Local storage for language/theme is similarly functional, not tracking.</p>
+      </section>
+
+      <section>
+        <h2>3. Analytics</h2>
+        <p>We use Google Analytics to understand overall traffic and usage patterns. This data is aggregated and not tied back to your BuildArken profile.</p>
+      </section>
+
+      <section>
+        <h2>4. Controlling cookies</h2>
+        <p>You can clear cookies and local storage from your browser settings at any time — this will sign you out and reset your language/theme preference back to default. Most browsers also let you block third-party cookies (like Google Analytics) without affecting sign-in.</p>
+      </section>
+
+      <section>
+        <h2>5. Changes</h2>
+        <p>If what we store changes, we'll update this page and the date above.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="cookies.html">Cookie Policy</a>
+    </div>
+  </footer>
+</body>
+</html>
