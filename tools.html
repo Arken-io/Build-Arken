@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('arken_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BuildArken Tools</title>
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -37,6 +38,25 @@
   }
 
   *{ box-sizing: border-box; margin:0; padding:0; }
+
+  [data-theme="light"]{
+    --bg: #FAFAFA;
+    --bg-raised: #FFFFFF;
+    --bg-raised-hover: #F2F3F5;
+    --border: #E3E5E9;
+    --border-soft: #ECEDF0;
+    --text-1: #14161B;
+    --text-2: #5B5F6B;
+    --text-3: #9599A3;
+    --accent: #0EA98C;
+    --accent-dim: #0EA98C1f;
+    --accent-ink: #FFFFFF;
+    --status-alpha: #C97C1B;
+    --status-beta: #2E6FE0;
+    --status-stable: #0EA98C;
+    --warn: #C97C1B;
+    --warn-dim: #C97C1B1f;
+  }
 
   html{ scroll-behavior: smooth; height: 100%; overflow: hidden; }
 
@@ -885,13 +905,14 @@
 
   <nav class="nav">
     <div class="wrap">
-      <a class="logo" href="#">
+      <a class="logo" href="index.html">
         <img src="/apple-touch-icon.png" width="22" height="22" alt="Arken">
         BuildArken
       </a>
       <div class="nav-links">
         <a href="index.html" data-i18n="nav_home">Home</a>
         <a href="tools.html" class="nav-current" data-i18n="nav_tools">Tools</a>
+        <a href="creators.html" data-i18n="nav_creators">Creators</a>
         <a href="dashboard.html" data-i18n="nav_dashboard">Dashboard</a>
       </div>
       <div class="nav-right">
@@ -1108,24 +1129,29 @@
       var searchInput = document.getElementById('product-search');
       var filterTabs = Array.prototype.slice.call(document.querySelectorAll('.filter-tab'));
       var grid = document.getElementById('products-grid');
-      var cards = Array.prototype.slice.call(document.querySelectorAll('[data-card]'));
       var validFilters = filterTabs.map(function(t){ return t.getAttribute('data-filter'); });
       var activeFilter = 'all';
       var noResultsEl = null;
       var countLabel = document.getElementById('products-count');
       var countWord = (countLabel.textContent.trim().split(' ')[1]) || 'Products';
 
-      // Per-tab counts (All / AI / Developer / Utilities) so each tab reads
-      // like a distinct section of the catalog rather than a blind filter.
-      document.querySelectorAll('.filter-tab-count').forEach(function(el){
-        var key = el.getAttribute('data-count-for');
-        var count = key === 'all'
-          ? cards.length
-          : cards.filter(function(c){ return c.getAttribute('data-category') === key; }).length;
-        el.textContent = count;
-      });
+      function getCards(){
+        return Array.prototype.slice.call(document.querySelectorAll('[data-card]'));
+      }
+
+      function updateCounts(){
+        var cards = getCards();
+        document.querySelectorAll('.filter-tab-count').forEach(function(el){
+          var key = el.getAttribute('data-count-for');
+          var count = key === 'all'
+            ? cards.length
+            : cards.filter(function(c){ return c.getAttribute('data-category') === key; }).length;
+          el.textContent = count;
+        });
+      }
 
       function applyFilters(){
+        var cards = getCards();
         var query = (searchInput.value || '').trim().toLowerCase();
         var visibleCount = 0;
 
@@ -1168,7 +1194,7 @@
         grid.classList.add('is-switching');
         setTimeout(function(){
           applyFilters();
-          cards.forEach(function(c){ c.style.animation = 'none'; c.offsetHeight; c.style.animation = ''; });
+          getCards().forEach(function(c){ c.style.animation = 'none'; c.offsetHeight; c.style.animation = ''; });
           grid.classList.remove('is-switching');
         }, 140);
 
@@ -1196,6 +1222,15 @@
         switchTab(filterFromHash(), { fromHash: true });
       });
 
+      // Called after community tools are fetched and appended to the grid
+      // (see the Supabase script below), so counts and the current filter
+      // immediately account for the new cards.
+      window.refreshProductsGrid = function(){
+        updateCounts();
+        applyFilters();
+      };
+
+      updateCounts();
       var initial = filterFromHash();
       if (initial !== 'all') switchTab(initial, { fromHash: true });
       else applyFilters();
@@ -1238,11 +1273,11 @@
         loading.style.display = 'none';
       });
 
-      document.querySelectorAll('[data-tool-url]').forEach(function(link){
-        link.addEventListener('click', function(e){
-          e.preventDefault();
-          openTool(link.getAttribute('data-tool-url'), link.getAttribute('data-tool-name'), link.getAttribute('data-tool-slug'));
-        });
+      document.addEventListener('click', function(e){
+        var link = e.target.closest('[data-tool-url]');
+        if (!link) return;
+        e.preventDefault();
+        openTool(link.getAttribute('data-tool-url'), link.getAttribute('data-tool-name'), link.getAttribute('data-tool-slug'));
       });
 
       closeBtn.addEventListener('click', closeTool);
@@ -1313,6 +1348,77 @@
       });
       window.sb = sb; // shared with the tool-preview script below
       window.arkenUser = null;
+
+      // ---- Community tools (Creator-published, status='published') ------
+      // Reuses the same .card markup, filter/search, favorite, and
+      // recently-viewed machinery as the 3 built-in tools — categories
+      // outside ai/developer fold into the "utilities" tab so the filter
+      // bar doesn't grow a new tab per niche category.
+      function categoryToFilterBucket(cat){
+        return (cat === 'ai' || cat === 'developer') ? cat : 'utilities';
+      }
+      function escapeHtml(str){
+        var div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+      }
+      function starsMiniMarkup(rating){
+        var full = Math.round(rating || 0);
+        var html = '';
+        for (var i = 1; i <= 5; i++) {
+          html += i <= full
+            ? '<svg width="11" height="11" viewBox="0 0 24 24" style="fill:#F0A23D"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1L12 2z"/></svg>'
+            : '<svg width="11" height="11" viewBox="0 0 24 24" style="fill:none;stroke:var(--text-3);stroke-width:1.5"><path d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.9L12 17.8 5.8 21l1.2-6.9-5-4.9 6.9-1L12 2z"/></svg>';
+        }
+        return html;
+      }
+
+      function buildCommunityCard(tool){
+        var article = document.createElement('article');
+        article.className = 'card';
+        article.setAttribute('data-card', '');
+        article.setAttribute('data-category', categoryToFilterBucket(tool.category));
+
+        var pricingLabel = { free: 'FREE', freemium: 'FREEMIUM', paid: 'PAID' }[tool.pricing] || 'FREE';
+        var iconHtml = tool.logo_url
+          ? '<img src="' + tool.logo_url + '" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">'
+          : '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
+        var detailHref = 'tool.html?slug=' + encodeURIComponent(tool.slug);
+        var ratingHtml = tool.rating_count
+          ? '<div style="display:flex;align-items:center;gap:5px;margin-top:-6px;"><span style="display:inline-flex;gap:1px;">' + starsMiniMarkup(tool.rating_avg) + '</span><span style="font-size:11px;color:var(--text-3);">(' + tool.rating_count + ')</span></div>'
+          : '';
+
+        article.innerHTML =
+          '<div class="card-top">' +
+            '<span class="badge" data-status="beta"><span class="dot"></span>' + pricingLabel + '</span>' +
+            '<div class="card-top-right">' +
+              '<button type="button" class="fav-toggle" data-fav-slug="' + tool.slug + '" aria-label="Favorite">' +
+                '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>' +
+              '</button>' +
+            '</div>' +
+          '</div>' +
+          '<a href="' + detailHref + '" style="text-decoration:none;color:inherit;"><div class="card-icon">' + iconHtml + '</div>' +
+          '<h3>' + escapeHtml(tool.name) + '</h3></a>' +
+          ratingHtml +
+          '<p>' + escapeHtml(tool.short_description || '') + '</p>' +
+          '<div class="card-actions">' +
+            '<a class="btn btn-primary btn-sm" href="' + detailHref + '">View</a>' +
+          '</div>';
+        return article;
+      }
+
+      function loadCommunityTools(){
+        sb.from('published_tools').select('*').eq('status', 'published').order('created_at', { ascending: false })
+          .then(function(res){
+            var rows = res.data || [];
+            if (!rows.length) return;
+            var grid = document.getElementById('products-grid');
+            rows.forEach(function(tool){ grid.appendChild(buildCommunityCard(tool)); });
+            if (window.refreshProductsGrid) window.refreshProductsGrid();
+            if (window.arkenUser) loadFavoritesState();
+          });
+      }
+      loadCommunityTools();
 
       // ---- DOM refs ----------------------------------------------------
       var overlay = document.getElementById('auth-overlay');
@@ -1411,22 +1517,22 @@
         });
       }
 
-      document.querySelectorAll('.fav-toggle').forEach(function(btn){
-        btn.addEventListener('click', function(e){
-          e.preventDefault();
-          e.stopPropagation();
-          if (!window.arkenUser) { openModal(); return; }
-          var slug = btn.getAttribute('data-fav-slug');
-          var isActive = btn.classList.contains('active');
-          btn.classList.toggle('active', !isActive); // optimistic UI
-          if (isActive) {
-            sb.from('user_favorites').delete().eq('user_id', window.arkenUser.id).eq('tool_slug', slug)
-              .then(function(res){ if (res.error) btn.classList.toggle('active', isActive); });
-          } else {
-            sb.from('user_favorites').insert({ user_id: window.arkenUser.id, tool_slug: slug })
-              .then(function(res){ if (res.error) btn.classList.toggle('active', isActive); });
-          }
-        });
+      document.addEventListener('click', function(e){
+        var btn = e.target.closest('.fav-toggle');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (!window.arkenUser) { openModal(); return; }
+        var slug = btn.getAttribute('data-fav-slug');
+        var isActive = btn.classList.contains('active');
+        btn.classList.toggle('active', !isActive); // optimistic UI
+        if (isActive) {
+          sb.from('user_favorites').delete().eq('user_id', window.arkenUser.id).eq('tool_slug', slug)
+            .then(function(res){ if (res.error) btn.classList.toggle('active', isActive); });
+        } else {
+          sb.from('user_favorites').insert({ user_id: window.arkenUser.id, tool_slug: slug })
+            .then(function(res){ if (res.error) btn.classList.toggle('active', isActive); });
+        }
       });
 
       sb.auth.getSession().then(function(res){
@@ -1454,7 +1560,7 @@
 
       var STRINGS = {
         en: {
-          nav_home: "Home", nav_tools: "Tools", nav_dashboard: "Dashboard",
+          nav_home: "Home", nav_tools: "Tools", nav_creators: "Creators", nav_dashboard: "Dashboard",
           nav_signin: "Login", nav_signout: "Sign out",
           tools_eyebrow: "ALL YOUR AI TOOLS, ONE WORKSPACE",
           tools_title: "Explore Tools",
@@ -1473,7 +1579,7 @@
           auth_or: "or", auth_send_link: "Send link"
         },
         ar: {
-          nav_home: "الرئيسية", nav_tools: "الأدوات", nav_dashboard: "لوحة التحكم",
+          nav_home: "الرئيسية", nav_tools: "الأدوات", nav_creators: "المبدعون", nav_dashboard: "لوحة التحكم",
           nav_signin: "تسجيل الدخول", nav_signout: "تسجيل الخروج",
           tools_eyebrow: "جميع أدوات الذكاء الاصطناعي، في مساحة عمل واحدة",
           tools_title: "استكشاف الأدوات",
@@ -1492,7 +1598,7 @@
           auth_or: "أو", auth_send_link: "إرسال الرابط"
         },
         de: {
-          nav_home: "Startseite", nav_tools: "Tools", nav_dashboard: "Dashboard",
+          nav_home: "Startseite", nav_tools: "Tools", nav_creators: "Creators", nav_dashboard: "Dashboard",
           nav_signin: "Anmelden", nav_signout: "Abmelden",
           tools_eyebrow: "ALLE DEINE KI-TOOLS, EIN ARBEITSBEREICH",
           tools_title: "Tools entdecken",
@@ -1511,7 +1617,7 @@
           auth_or: "oder", auth_send_link: "Link senden"
         },
         ru: {
-          nav_home: "Главная", nav_tools: "Инструменты", nav_dashboard: "Панель управления",
+          nav_home: "Главная", nav_tools: "Инструменты", nav_creators: "Авторы", nav_dashboard: "Панель управления",
           nav_signin: "Войти", nav_signout: "Выйти",
           tools_eyebrow: "ВСЕ ВАШИ ИИ-ИНСТРУМЕНТЫ В ОДНОМ МЕСТЕ",
           tools_title: "Все инструменты",
@@ -1530,7 +1636,7 @@
           auth_or: "или", auth_send_link: "Отправить ссылку"
         },
         es: {
-          nav_home: "Inicio", nav_tools: "Herramientas", nav_dashboard: "Panel",
+          nav_home: "Inicio", nav_tools: "Herramientas", nav_creators: "Creadores", nav_dashboard: "Panel",
           nav_signin: "Iniciar sesión", nav_signout: "Cerrar sesión",
           tools_eyebrow: "TODAS TUS HERRAMIENTAS DE IA, EN UN SOLO LUGAR",
           tools_title: "Explorar herramientas",
@@ -1549,7 +1655,7 @@
           auth_or: "o", auth_send_link: "Enviar enlace"
         },
         fr: {
-          nav_home: "Accueil", nav_tools: "Outils", nav_dashboard: "Tableau de bord",
+          nav_home: "Accueil", nav_tools: "Outils", nav_creators: "Créateurs", nav_dashboard: "Tableau de bord",
           nav_signin: "Connexion", nav_signout: "Déconnexion",
           tools_eyebrow: "TOUS VOS OUTILS IA, EN UN SEUL ENDROIT",
           tools_title: "Explorer les outils",
