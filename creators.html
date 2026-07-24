@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var t=localStorage.getItem('arken_theme')||'dark';document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Creators — BuildArken</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0A0B0D; --bg-raised: #111318; --bg-raised-hover: #15181E; --border: #1E2128; --border-soft: #191C22;
+    --text-1: #EDEEF1; --text-2: #9498A3; --text-3: #5A5E68;
+    --accent: #45E0C6; --accent-dim: #45E0C633; --accent-ink: #06110F;
+    --radius-m: 12px; --radius-l: 20px;
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  *{ box-sizing: border-box; margin:0; padding:0; }
+  [data-theme="light"]{
+    --bg: #FAFAFA; --bg-raised: #FFFFFF; --bg-raised-hover: #F2F3F5; --border: #E3E5E9; --border-soft: #ECEDF0;
+    --text-1: #14161B; --text-2: #5B5F6B; --text-3: #9599A3;
+    --accent: #0EA98C; --accent-dim: #0EA98C1f; --accent-ink: #FFFFFF;
+  }
+  html{ height: 100%; overflow: hidden; }
+  body{ height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); color: var(--text-1); font-family: var(--font-display); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  a{ color: inherit; text-decoration: none; }
+  .wrap{ max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+  .nav{ position: sticky; top: 0; z-index: 50; background: rgba(10,11,13,0.72); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  [data-theme="light"] .nav{ background: rgba(250,250,250,0.78); }
+  .nav .wrap{ height: 64px; display: flex; align-items: center; justify-content: space-between; }
+  .logo{ display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 16px; }
+  .logo img{ border-radius: 6px; }
+  .nav-links{ display: flex; gap: 26px; font-size: 14px; color: var(--text-2); }
+  .nav-links a:hover{ color: var(--text-1); }
+
+  main{ padding: 56px 0 96px; }
+  .header{ text-align: center; margin-bottom: 40px; }
+  .header h1{ font-size: clamp(28px, 4.5vw, 38px); font-weight: 800; letter-spacing: -0.02em; }
+  .header p{ color: var(--text-2); margin-top: 10px; font-size: 14.5px; }
+
+  .grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 860px){ .grid{ grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px){ .grid{ grid-template-columns: 1fr; } }
+
+  .creator-card{ background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius-l); padding: 22px; text-align: center; transition: transform 0.15s ease, background 0.15s ease; }
+  .creator-card:hover{ background: var(--bg-raised-hover); transform: translateY(-2px); }
+  .creator-avatar{ width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 12px; background: var(--accent-dim); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 22px; overflow: hidden; }
+  .creator-avatar img{ width: 100%; height: 100%; object-fit: cover; }
+  .creator-name{ font-size: 14.5px; font-weight: 700; }
+  .creator-username{ font-size: 12.5px; color: var(--text-3); font-family: var(--font-mono); margin-top: 2px; }
+  .creator-bio{ font-size: 12.5px; color: var(--text-2); margin-top: 8px; line-height: 1.5; }
+  .creator-stats{ font-size: 11.5px; color: var(--text-3); margin-top: 10px; }
+
+  .empty-state{ text-align: center; padding: 60px 20px; color: var(--text-3); }
+  .loading-state{ text-align: center; padding: 100px 0; color: var(--text-2); font-family: var(--font-mono); font-size: 13px; }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="logo" href="index.html"><img src="/apple-touch-icon.png" width="20" height="20" alt="">BuildArken</a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="tools.html">Tools</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap">
+      <div class="header">
+        <h1>Creators</h1>
+        <p>The people building tools on BuildArken.</p>
+      </div>
+
+      <div id="loading" class="loading-state">Loading…</div>
+      <div class="grid" id="creators-grid" style="display:none;"></div>
+      <div class="empty-state" id="creators-empty" style="display:none;">No public creator profiles yet — be the first from <a href="dashboard.html" style="color:var(--accent);">your Dashboard</a>.</div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script>
+    (function(){
+      var SUPABASE_URL = "https://zwjntvrwepoqgrioejqa.supabase.co";
+      var SUPABASE_ANON_KEY = "sb_publishable_7SwXIR-7gPwuOg6nruekeQ_FT4dGgNp";
+      if (!window.supabase) return;
+      var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+      function initials(name){ return (name || '?').trim().charAt(0).toUpperCase(); }
+
+      sb.from('public_profiles').select('*').in('role', ['creator', 'admin']).order('created_at', { ascending: false }).then(function(res){
+        document.getElementById('loading').style.display = 'none';
+        var rows = res.data || [];
+        if (!rows.length) { document.getElementById('creators-empty').style.display = ''; return; }
+
+        var grid = document.getElementById('creators-grid');
+        grid.style.display = '';
+
+        var ids = rows.map(function(r){ return r.id; });
+        sb.from('published_tools').select('creator_id').eq('status', 'published').in('creator_id', ids).then(function(toolsRes){
+          var counts = {};
+          (toolsRes.data || []).forEach(function(t){ counts[t.creator_id] = (counts[t.creator_id] || 0) + 1; });
+
+          rows.forEach(function(p){
+            var card = document.createElement('a');
+            card.className = 'creator-card';
+            card.href = 'profile.html?u=' + encodeURIComponent(p.username);
+            var avatar = p.avatar_url ? '<img src="' + p.avatar_url + '" alt="">' : initials(p.full_name || p.username);
+            var toolCount = counts[p.id] || 0;
+            card.innerHTML =
+              '<div class="creator-avatar">' + avatar + '</div>' +
+              '<div class="creator-name">' + (p.full_name || p.username) + '</div>' +
+              '<div class="creator-username">@' + p.username + '</div>' +
+              (p.bio ? '<div class="creator-bio">' + p.bio.slice(0, 80) + (p.bio.length > 80 ? '…' : '') + '</div>' : '') +
+              '<div class="creator-stats">' + toolCount + ' published tool' + (toolCount === 1 ? '' : 's') + '</div>';
+            grid.appendChild(card);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
